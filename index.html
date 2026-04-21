@@ -10,70 +10,100 @@
         href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Sans:wght@300;400;500;600&display=swap"
         rel="stylesheet">
     <link rel="stylesheet" href="style.css">
+
 </head>
 
 <body>
 
-    <header>
-        <div class="logo">
-            <div class="logo-icon">☕</div>
+    <!-- SPLASH SCREEN -->
+    <div id="splash">
+        <div class="splash-logo">
+            <div class="splash-icon">☕</div>
             Roster
         </div>
-        <div class="header-right">
-            <div class="week-nav">
-                <button onclick="changeWeek(-1)">‹</button>
-                <span class="week-label" id="week-label">Apr 21 – 26</span>
-                <button onclick="changeWeek(1)">›</button>
+        <div class="splash-bar-track">
+            <div class="splash-bar-fill" id="splash-bar"></div>
+        </div>
+        <div class="splash-status" id="splash-status">Connecting to schedule…</div>
+        <div class="splash-dots">
+            <div class="splash-dot"></div>
+            <div class="splash-dot"></div>
+            <div class="splash-dot"></div>
+        </div>
+    </div>
+
+    <div id="app-content">
+
+        <header>
+            <div class="logo">
+                <div class="logo-icon">☕</div>
+                Roster
             </div>
-            <button class="btn-print" onclick="window.print()">Print / Save PDF</button>
-        </div>
-    </header>
-
-    <main>
-
-        <div class="summary-row" id="summary-row"></div>
-
-        <div class="view-tabs">
-            <button class="tab-btn active" onclick="switchView('week', this)">Week view</button>
-            <button class="tab-btn" onclick="switchView('staff', this)">By staff</button>
-        </div>
-
-        <div id="view-week">
-            <div class="schedule-container">
-                <table class="schedule-table">
-                    <thead>
-                        <tr id="table-header"></tr>
-                    </thead>
-                    <tbody id="table-body"></tbody>
-                </table>
+            <div class="header-right">
+                <div class="week-nav">
+                    <button onclick="changeWeek(-1)">‹</button>
+                    <span class="week-label" id="week-label">Loading…</span>
+                    <button onclick="changeWeek(1)">›</button>
+                </div>
+                <button class="btn-refresh" id="refresh-btn" onclick="manualRefresh()">↻</button>
+                <button class="btn-print" onclick="window.print()">Print / Save PDF</button>
             </div>
-            <div class="legend">
-                <span class="legend-label">Legend</span>
-                <div class="legend-item">
-                    <div class="legend-dot" style="background:var(--teal-light);border:1px solid rgba(45,110,110,0.2)">
-                    </div> Shift 1 — FOH 08:00–14:00 · PROD 05:00–11:00
-                </div>
-                <div class="legend-item">
-                    <div class="legend-dot" style="background:var(--gold-light);border:1px solid rgba(196,154,60,0.2)">
-                    </div> Shift 2 — FOH 12:00–18:00 · PROD 08:00–14:00
-                </div>
-                <div class="legend-item">
-                    <div class="legend-dot" style="background:var(--slate-light);border:1px solid rgba(74,85,104,0.2)">
-                    </div> Full Day — FOH 08:00–18:00 · PROD 05:00–14:00
-                </div>
-                <div class="legend-item">
-                    <div class="legend-dot" style="background:var(--rose-pale);border:1px solid rgba(160,48,48,0.15)">
-                    </div> Day Off
-                </div>
+        </header>
+
+        <div id="error-banner"></div>
+        <div id="last-updated"></div>
+
+        <main>
+            <div class="summary-row" id="summary-row"></div>
+
+            <div class="view-tabs">
+                <button class="tab-btn active" onclick="switchView('week', this)">Week view</button>
+                <button class="tab-btn" onclick="switchView('staff', this)">By staff</button>
             </div>
-            <p class="note">Tap any shift to edit it.</p>
-        </div>
 
-        <div id="view-staff">
-            <div class="staff-cards" id="staff-cards"></div>
-        </div>
+            <div id="view-week">
+                <div class="schedule-container">
+                    <table class="schedule-table">
+                        <thead>
+                            <tr id="table-header"></tr>
+                        </thead>
+                        <tbody id="table-body"></tbody>
+                    </table>
+                </div>
+                <div class="legend">
+                    <span class="legend-label">Legend</span>
+                    <div class="legend-item">
+                        <div class="legend-dot"
+                            style="background:var(--teal-light);border:1px solid rgba(45,110,110,0.2)"></div>
+                        Shift 1 — FOH 08:00–14:00 · PROD 05:00–11:00
+                    </div>
+                    <div class="legend-item">
+                        <div class="legend-dot"
+                            style="background:var(--gold-light);border:1px solid rgba(196,154,60,0.2)"></div>
+                        Shift 2 — FOH 12:00–18:00 · PROD 08:00–14:00
+                    </div>
+                    <div class="legend-item">
+                        <div class="legend-dot"
+                            style="background:var(--slate-light);border:1px solid rgba(74,85,104,0.2)"></div> Full
+                        Day — FOH 08:00–18:00 · PROD 05:00–14:00
+                    </div>
+                    <div class="legend-item">
+                        <div class="legend-dot"
+                            style="background:var(--rose-pale);border:1px solid rgba(160,48,48,0.15)"></div> Day
+                        Off
+                    </div>
+                </div>
+                <p class="note">Tap any shift to edit it.</p>
 
-    </main>
+                <p class="note">Schedule syncs automatically from Google Sheet every 2 minutes.</p>
+            </div>
+
+            <div id="view-staff">
+                <div class="staff-cards" id="staff-cards"></div>
+            </div>
+
+        </main>
+    </div>
 
     <div class="modal-overlay" id="modal" onclick="closeModal(event)">
         <div class="modal">
