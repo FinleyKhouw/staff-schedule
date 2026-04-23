@@ -4,27 +4,1202 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Staff Schedule — Week of April 21</title>
-
+    <title>Corebake — Staff Schedule</title>
     <link
-        href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Sans:wght@300;400;500;600&display=swap"
+        href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;500;600&family=DM+Sans:wght@300;400;500;600&display=swap"
         rel="stylesheet">
-    <link rel="stylesheet" href="style.css">
+    <style>
+        :root {
+            --bg: #F7F3EE;
+            --warm-white: #FDFAF6;
+            --brand: #5c0018;
+            --brand-deep: #3d0010;
+            --brand-mid: #7a0020;
+            --gold: #C9A84C;
+            --gold-light: #F5EDD6;
+            --gold-pale: #FBF7ED;
+            --gold-dark: #8B6914;
+            --teal: #2D6E6E;
+            --teal-light: #D4EAEA;
+            --rose: #A03030;
+            --rose-pale: #F8EAEA;
+            --slate: #4A5568;
+            --slate-light: #EDF0F5;
+            --ink: #1A0A0E;
+            --ink-muted: #6B5560;
+            --ink-faint: #C4AEB6;
+            --border: rgba(92, 0, 24, 0.12);
+            --shadow: 0 1px 3px rgba(92, 0, 24, 0.08), 0 4px 16px rgba(92, 0, 24, 0.05);
+        }
 
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'DM Sans', sans-serif;
+            background: var(--bg);
+            color: var(--ink);
+            min-height: 100vh;
+        }
+
+        /* ─── HEADER ─── */
+        header {
+            background: var(--brand);
+            color: var(--gold);
+            padding: 0 2rem;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            height: 68px;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            border-bottom: 1px solid rgba(201, 168, 76, 0.15);
+        }
+
+        .logo {
+            font-family: 'Cormorant Garamond', serif;
+            font-size: 1.6rem;
+            font-weight: 600;
+            letter-spacing: 0.18em;
+            text-transform: uppercase;
+            color: var(--gold);
+            display: flex;
+            align-items: center;
+            gap: 0;
+        }
+
+        .logo-icon {
+            display: none;
+        }
+
+        .header-right {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .week-nav {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 13px;
+            color: rgba(201, 168, 76, 0.7);
+        }
+
+        .week-nav button {
+            background: rgba(201, 168, 76, 0.12);
+            border: 1px solid rgba(201, 168, 76, 0.25);
+            color: var(--gold);
+            border-radius: 6px;
+            width: 28px;
+            height: 28px;
+            cursor: pointer;
+            font-size: 14px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: background 0.15s;
+        }
+
+        .week-nav button:hover {
+            background: rgba(201, 168, 76, 0.22);
+        }
+
+        .week-label {
+            font-weight: 500;
+            color: var(--gold);
+            font-size: 13px;
+            min-width: 120px;
+            text-align: center;
+        }
+
+        .btn-print {
+            background: var(--gold);
+            color: var(--brand);
+            border: none;
+            padding: 7px 16px;
+            border-radius: 8px;
+            font-family: 'DM Sans', sans-serif;
+            font-size: 13px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: opacity 0.15s;
+        }
+
+        .btn-print:hover {
+            opacity: 0.85;
+        }
+
+        /* ─── MAIN ─── */
+        main {
+            max-width: 1300px;
+            margin: 0 auto;
+            padding: 2rem 1.5rem 4rem;
+        }
+
+        /* ─── SUMMARY CARDS ─── */
+        .summary-row {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+            gap: 12px;
+            margin-bottom: 2rem;
+        }
+
+        .summary-card {
+            background: var(--warm-white);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 1rem 1.25rem;
+        }
+
+        .summary-card .label {
+            font-size: 11px;
+            font-weight: 500;
+            color: var(--ink-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.06em;
+            margin-bottom: 4px;
+        }
+
+        .summary-card .value {
+            font-size: 26px;
+            font-family: 'Cormorant Garamond', serif;
+            font-weight: 600;
+            color: var(--brand);
+            line-height: 1;
+        }
+
+        .summary-card .sub {
+            font-size: 11px;
+            color: var(--ink-faint);
+            margin-top: 4px;
+        }
+
+        /* ─── TABS ─── */
+        .view-tabs {
+            display: flex;
+            gap: 4px;
+            margin-bottom: 1.5rem;
+            background: var(--warm-white);
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            padding: 4px;
+            width: fit-content;
+        }
+
+        .tab-btn {
+            background: none;
+            border: none;
+            padding: 7px 18px;
+            border-radius: 7px;
+            font-family: 'DM Sans', sans-serif;
+            font-size: 13px;
+            font-weight: 500;
+            color: var(--ink-muted);
+            cursor: pointer;
+            transition: all 0.15s;
+        }
+
+        .tab-btn.active {
+            background: var(--brand);
+            color: var(--gold);
+        }
+
+        /* ─── SCHEDULE GRID ─── */
+        .schedule-container {
+            background: var(--warm-white);
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            overflow: hidden;
+            box-shadow: var(--shadow);
+        }
+
+        .schedule-table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        .schedule-table thead tr {
+            background: var(--brand);
+            color: var(--gold);
+        }
+
+        .schedule-table thead th {
+            padding: 14px 12px;
+            text-align: center;
+            font-size: 12px;
+            font-weight: 500;
+            letter-spacing: 0.03em;
+        }
+
+        .schedule-table thead th:first-child {
+            text-align: left;
+            padding-left: 20px;
+            width: 180px;
+        }
+
+        .schedule-table thead th .day-name {
+            font-family: 'Cormorant Garamond', serif;
+            font-weight: 600;
+            font-size: 20px;
+            display: block;
+            line-height: 1;
+            color: var(--gold);
+        }
+
+        .schedule-table thead th .day-sub {
+            font-size: 10px;
+            opacity: 0.6;
+            margin-top: 2px;
+            display: block;
+        }
+
+        .schedule-table thead th.today-header {
+            background: var(--gold);
+            color: var(--brand);
+        }
+
+        .schedule-table thead th.today-header .day-name {
+            color: var(--brand);
+        }
+
+        /* Section dividers */
+        .section-row td {
+            background: rgba(92, 0, 24, 0.04);
+            padding: 8px 20px 4px;
+            font-size: 10px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+            color: var(--brand-mid);
+            border-top: 1px solid var(--border);
+        }
+
+        /* Staff rows */
+        .staff-row {
+            border-bottom: 1px solid rgba(92, 0, 24, 0.05);
+            transition: background 0.1s;
+        }
+
+        .staff-row:hover {
+            background: var(--gold-pale);
+        }
+
+        .staff-cell {
+            padding: 12px 20px;
+            vertical-align: middle;
+        }
+
+        .staff-name {
+            font-size: 14px;
+            font-weight: 500;
+            color: var(--ink);
+        }
+
+        .staff-role {
+            font-size: 11px;
+            color: var(--ink-muted);
+            margin-top: 1px;
+        }
+
+        .shift-cell {
+            padding: 8px 6px;
+            text-align: center;
+            vertical-align: middle;
+        }
+
+        /* ─── SHIFT CHIPS ─── */
+        .chip {
+            display: inline-flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            border-radius: 8px;
+            padding: 6px 10px;
+            font-size: 11px;
+            font-weight: 500;
+            min-width: 80px;
+            cursor: pointer;
+            transition: transform 0.1s, opacity 0.1s;
+            line-height: 1.3;
+            user-select: none;
+            position: relative;
+        }
+
+        .chip:hover {
+            transform: scale(1.04);
+        }
+
+        .chip:active {
+            transform: scale(0.97);
+        }
+
+        .chip.am {
+            background: var(--teal-light);
+            color: var(--teal);
+            border: 1px solid rgba(45, 110, 110, 0.2);
+        }
+
+        .chip.pm {
+            background: var(--gold-light);
+            color: #8B6914;
+            border: 1px solid rgba(196, 154, 60, 0.2);
+        }
+
+        .chip.full {
+            background: var(--slate-light);
+            color: var(--slate);
+            border: 1px solid rgba(74, 85, 104, 0.2);
+        }
+
+        .chip.off {
+            background: var(--rose-pale);
+            color: var(--rose);
+            border: 1px solid rgba(160, 48, 48, 0.15);
+            font-style: italic;
+        }
+
+        .chip .chip-time {
+            font-size: 9px;
+            opacity: 0.7;
+            margin-top: 1px;
+            font-weight: 400;
+        }
+
+        /* ─── STAFF VIEW ─── */
+        #view-staff {
+            display: none;
+        }
+
+        .staff-cards {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: 16px;
+        }
+
+        .staff-card {
+            background: var(--warm-white);
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            overflow: hidden;
+            box-shadow: var(--shadow);
+            animation: fadeUp 0.3s ease both;
+        }
+
+        @keyframes fadeUp {
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .staff-card-header {
+            padding: 1rem 1.25rem;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .avatar {
+            width: 42px;
+            height: 42px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-family: 'DM Serif Display', serif;
+            font-size: 16px;
+            flex-shrink: 0;
+        }
+
+        .avatar.kitchen {
+            background: var(--teal-light);
+            color: var(--teal);
+        }
+
+        .avatar.bar {
+            background: var(--gold-light);
+            color: #8B6914;
+        }
+
+        .avatar.floor {
+            background: var(--slate-light);
+            color: var(--slate);
+        }
+
+        .staff-card-body {
+            padding: 0.75rem 1.25rem 1rem;
+        }
+
+        .week-chips {
+            display: flex;
+            gap: 6px;
+            flex-wrap: wrap;
+        }
+
+        .mini-chip {
+            font-size: 10px;
+            font-weight: 500;
+            padding: 3px 8px;
+            border-radius: 5px;
+        }
+
+        .mini-chip.am {
+            background: var(--teal-light);
+            color: var(--teal);
+        }
+
+        .mini-chip.pm {
+            background: var(--gold-light);
+            color: #8B6914;
+        }
+
+        .mini-chip.full {
+            background: var(--slate-light);
+            color: var(--slate);
+        }
+
+        .mini-chip.off {
+            background: var(--rose-pale);
+            color: var(--rose);
+        }
+
+        /* ─── MODAL ─── */
+        .modal-overlay {
+            display: none;
+            position: fixed;
+            inset: 0;
+            background: rgba(26, 23, 20, 0.5);
+            z-index: 200;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .modal-overlay.open {
+            display: flex;
+        }
+
+        .modal {
+            background: var(--warm-white);
+            border-radius: 20px;
+            padding: 2rem;
+            width: 340px;
+            max-width: 90vw;
+            box-shadow: 0 20px 60px rgba(26, 23, 20, 0.2);
+            animation: popIn 0.2s ease;
+        }
+
+        @keyframes popIn {
+            from {
+                opacity: 0;
+                transform: scale(0.94);
+            }
+
+            to {
+                opacity: 1;
+                transform: scale(1);
+            }
+        }
+
+        .modal h3 {
+            font-family: 'DM Serif Display', serif;
+            font-size: 1.3rem;
+            margin-bottom: 4px;
+        }
+
+        .modal .modal-sub {
+            font-size: 12px;
+            color: var(--ink-muted);
+            margin-bottom: 1.5rem;
+        }
+
+        .shift-options {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+            margin-bottom: 1.5rem;
+        }
+
+        .shift-option {
+            border: 2px solid var(--border);
+            border-radius: 12px;
+            padding: 14px 10px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.15s;
+            font-family: 'DM Sans', sans-serif;
+        }
+
+        .shift-option:hover {
+            border-color: var(--ink);
+        }
+
+        .shift-option.selected {
+            border-color: var(--ink);
+            background: var(--gold-pale);
+        }
+
+        .shift-option .opt-label {
+            font-size: 13px;
+            font-weight: 600;
+            color: var(--ink);
+        }
+
+        .shift-option .opt-time {
+            font-size: 10px;
+            color: var(--ink-muted);
+            margin-top: 2px;
+        }
+
+        .modal-actions {
+            display: flex;
+            gap: 8px;
+            justify-content: flex-end;
+        }
+
+        .btn-cancel {
+            background: none;
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 9px 18px;
+            font-family: 'DM Sans', sans-serif;
+            font-size: 13px;
+            cursor: pointer;
+            color: var(--ink-muted);
+            transition: background 0.15s;
+        }
+
+        .btn-cancel:hover {
+            background: var(--cream);
+        }
+
+        .btn-save {
+            background: var(--ink);
+            border: none;
+            border-radius: 8px;
+            padding: 9px 20px;
+            font-family: 'DM Sans', sans-serif;
+            font-size: 13px;
+            font-weight: 500;
+            color: var(--warm-white);
+            cursor: pointer;
+            transition: opacity 0.15s;
+        }
+
+        .btn-save:hover {
+            opacity: 0.8;
+        }
+
+        /* ─── LEGEND ─── */
+        .legend {
+            display: flex;
+            gap: 20px;
+            flex-wrap: wrap;
+            align-items: center;
+            margin-top: 1.5rem;
+            padding: 1rem 1.25rem;
+            background: var(--warm-white);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+        }
+
+        .legend-label {
+            font-size: 11px;
+            font-weight: 600;
+            color: var(--ink-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+
+        .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 7px;
+            font-size: 12px;
+            color: var(--ink-muted);
+        }
+
+        .legend-dot {
+            width: 22px;
+            height: 10px;
+            border-radius: 3px;
+        }
+
+        .note {
+            margin-top: 1rem;
+            font-size: 12px;
+            color: var(--ink-muted);
+            padding-left: 4px;
+        }
+
+        /* ─── PORTAL BUTTONS ─── */
+        .portal-buttons {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 1.75rem;
+            flex-wrap: wrap;
+        }
+
+        .portal-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 7px;
+            padding: 10px 18px;
+            border-radius: 10px;
+            font-family: 'DM Sans', sans-serif;
+            font-size: 13px;
+            font-weight: 500;
+            text-decoration: none;
+            cursor: pointer;
+            border: none;
+            transition: opacity 0.15s, transform 0.1s;
+        }
+
+        .portal-btn:active {
+            transform: scale(0.97);
+        }
+
+        .portal-btn:hover {
+            opacity: 0.85;
+        }
+
+        .portal-btn.overtime {
+            background: var(--gold);
+            color: var(--brand);
+            font-weight: 600;
+        }
+
+        .portal-btn.dayoff {
+            background: var(--brand);
+            color: var(--gold);
+            border: 1px solid rgba(201, 168, 76, 0.3);
+        }
+
+        .portal-btn-icon {
+            font-size: 15px;
+        }
+
+        /* ─── LEGEND ─── */
+        .legend {
+            display: flex;
+            gap: 20px;
+            flex-wrap: wrap;
+            align-items: center;
+            margin-top: 1.5rem;
+            padding: 1rem 1.25rem;
+            background: var(--warm-white);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+        }
+
+        .legend-label {
+            font-size: 11px;
+            font-weight: 600;
+            color: var(--ink-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+
+        .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 7px;
+            font-size: 12px;
+            color: var(--ink-muted);
+        }
+
+        .legend-dot {
+            width: 22px;
+            height: 10px;
+            border-radius: 3px;
+        }
+
+        .note {
+            margin-top: 1rem;
+            font-size: 12px;
+            color: var(--ink-muted);
+            padding-left: 4px;
+        }
+
+        /* ─── AVATAR ─── */
+        .avatar.kitchen {
+            background: var(--teal-light);
+            color: var(--teal);
+        }
+
+        .avatar.bar {
+            background: var(--gold-light);
+            color: var(--gold-dark);
+        }
+
+        .avatar.floor {
+            background: var(--slate-light);
+            color: var(--slate);
+        }
+
+        /* ─── PRINT ─── */
+        @media print {
+            header {
+                position: static;
+                background: white;
+            }
+
+            .view-tabs,
+            .btn-print,
+            .modal-overlay,
+            .note,
+            .portal-buttons {
+                display: none !important;
+            }
+
+            .chip {
+                cursor: default;
+            }
+
+            body {
+                background: white;
+            }
+
+            main {
+                padding: 1rem;
+            }
+
+            .schedule-table thead tr {
+                background: #5c0018 !important;
+                -webkit-print-color-adjust: exact;
+            }
+        }
+
+        /* ─── MOBILE ─── */
+        @media (max-width: 768px) {
+            header {
+                padding: 0 1rem;
+                height: 60px;
+            }
+
+            .logo {
+                font-size: 1.3rem;
+                letter-spacing: 0.14em;
+            }
+
+            .week-nav .week-label {
+                font-size: 12px;
+                min-width: 80px;
+            }
+
+            main {
+                padding: 1rem 0.75rem 3rem;
+            }
+
+            /* Scrollable week table — stays visible on mobile */
+            .schedule-container {
+                overflow-x: auto;
+                -webkit-overflow-scrolling: touch;
+                border-radius: 12px;
+            }
+
+            .schedule-table {
+                min-width: 560px;
+            }
+
+            .schedule-table thead th {
+                padding: 10px 6px;
+            }
+
+            .schedule-table thead th:first-child {
+                width: 110px;
+                padding-left: 10px;
+            }
+
+            .schedule-table thead th .day-name {
+                font-size: 16px;
+            }
+
+            .staff-cell {
+                padding: 10px 10px;
+            }
+
+            .staff-name {
+                font-size: 13px;
+            }
+
+            .staff-role {
+                font-size: 10px;
+            }
+
+            .shift-cell {
+                padding: 6px 4px;
+            }
+
+            .chip {
+                min-width: 58px;
+                font-size: 10px;
+                padding: 5px 5px;
+            }
+
+            .chip .chip-time {
+                display: none;
+            }
+
+            /* Scroll hint */
+            .schedule-container::after {
+                content: '';
+                position: absolute;
+                right: 0;
+                top: 0;
+                bottom: 0;
+                width: 28px;
+                background: linear-gradient(to right, transparent, rgba(249, 243, 238, 0.8));
+                pointer-events: none;
+                border-radius: 0 12px 12px 0;
+            }
+
+            .schedule-wrap {
+                position: relative;
+            }
+
+            .summary-row {
+                grid-template-columns: repeat(2, 1fr);
+            }
+
+            .summary-card .value {
+                font-size: 22px;
+            }
+
+            .portal-buttons {
+                gap: 8px;
+            }
+
+            .portal-btn {
+                flex: 1;
+                justify-content: center;
+                font-size: 12px;
+                padding: 10px 8px;
+            }
+
+            .view-tabs {
+                width: 100%;
+            }
+
+            .tab-btn {
+                flex: 1;
+                text-align: center;
+                padding: 7px 10px;
+            }
+
+            .btn-print {
+                display: none;
+            }
+
+            /* Hide mobile card view — we use scrollable table instead */
+            #mobile-schedule {
+                display: none !important;
+            }
+        }
+
+        @media (min-width: 769px) {
+            #mobile-schedule {
+                display: none;
+            }
+        }
+
+        /* Mobile day cards — hidden, kept for potential future use */
+        #mobile-schedule {
+            display: none;
+        }
+
+        .mobile-day-group {
+            margin-bottom: 1.25rem;
+        }
+
+        .mobile-day-header {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 8px 12px;
+            background: var(--brand);
+            color: var(--gold);
+            border-radius: 10px 10px 0 0;
+            font-size: 13px;
+            font-weight: 500;
+        }
+
+        .mobile-day-header.today {
+            background: var(--gold);
+            color: var(--brand);
+        }
+
+        .mobile-day-num {
+            font-family: 'Cormorant Garamond', serif;
+            font-size: 1.4rem;
+            line-height: 1;
+            font-weight: 600;
+        }
+
+        .mobile-day-name {
+            font-size: 11px;
+            opacity: 0.7;
+        }
+
+        .mobile-day-body {
+            background: var(--warm-white);
+            border: 1px solid var(--border);
+            border-top: none;
+            border-radius: 0 0 10px 10px;
+            overflow: hidden;
+        }
+
+        .mobile-staff-row {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 10px 14px;
+            border-bottom: 1px solid rgba(92, 0, 24, 0.05);
+            gap: 10px;
+        }
+
+        .mobile-staff-row:last-child {
+            border-bottom: none;
+        }
+
+        .mobile-cat-divider {
+            padding: 5px 14px 2px;
+            font-size: 9px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+            color: var(--brand-mid);
+            background: rgba(92, 0, 24, 0.04);
+            border-bottom: 1px solid var(--border);
+        }
+
+        .mobile-name {
+            font-size: 13px;
+            font-weight: 500;
+            color: var(--ink);
+        }
+
+        .mobile-role {
+            font-size: 10px;
+            color: var(--ink-muted);
+        }
+
+        .mobile-chip {
+            font-size: 11px;
+            font-weight: 500;
+            padding: 5px 10px;
+            border-radius: 7px;
+            white-space: nowrap;
+            flex-shrink: 0;
+        }
+
+        .mobile-chip.am {
+            background: var(--teal-light);
+            color: var(--teal);
+        }
+
+        .mobile-chip.pm {
+            background: var(--gold-light);
+            color: var(--gold-dark);
+        }
+
+        .mobile-chip.full {
+            background: var(--slate-light);
+            color: var(--slate);
+        }
+
+        .mobile-chip.off {
+            background: var(--rose-pale);
+            color: var(--rose);
+            font-style: italic;
+        }
+    </style>
+    <style>
+        /* ─── SPLASH SCREEN ─── */
+        #splash {
+            position: fixed;
+            inset: 0;
+            z-index: 9999;
+            background: var(--brand);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 20px;
+            transition: opacity 0.5s ease, visibility 0.5s ease;
+        }
+
+        #splash.hidden {
+            opacity: 0;
+            visibility: hidden;
+            pointer-events: none;
+        }
+
+        .splash-wordmark {
+            font-family: 'Cormorant Garamond', serif;
+            font-size: 2.8rem;
+            font-weight: 600;
+            letter-spacing: 0.22em;
+            color: var(--gold);
+            text-transform: uppercase;
+        }
+
+        .splash-bar-track {
+            width: 200px;
+            height: 2px;
+            background: rgba(201, 168, 76, 0.2);
+            border-radius: 2px;
+            overflow: hidden;
+        }
+
+        .splash-bar-fill {
+            height: 100%;
+            width: 0%;
+            background: var(--gold);
+            border-radius: 2px;
+            transition: width 0.25s ease;
+        }
+
+        .splash-status {
+            font-size: 12px;
+            color: rgba(201, 168, 76, 0.45);
+            letter-spacing: 0.06em;
+            min-height: 16px;
+        }
+
+        .splash-dots {
+            display: flex;
+            gap: 7px;
+        }
+
+        .splash-dot {
+            width: 6px;
+            height: 6px;
+            border-radius: 50%;
+            background: rgba(201, 168, 76, 0.25);
+            animation: dotpulse 1.2s ease-in-out infinite;
+        }
+
+        .splash-dot:nth-child(2) {
+            animation-delay: 0.2s;
+        }
+
+        .splash-dot:nth-child(3) {
+            animation-delay: 0.4s;
+        }
+
+        @keyframes dotpulse {
+
+            0%,
+            80%,
+            100% {
+                background: rgba(201, 168, 76, 0.25);
+                transform: scale(1);
+            }
+
+            40% {
+                background: var(--gold);
+                transform: scale(1.5);
+            }
+        }
+
+        #app-content {
+            display: none;
+        }
+
+        #app-content.visible {
+            display: block;
+            animation: appFadeIn 0.4s ease;
+        }
+
+        @keyframes appFadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(6px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        #loading-bar {
+            display: none;
+            height: 3px;
+            background: var(--gold);
+            width: 100%;
+            position: sticky;
+            top: 68px;
+            z-index: 99;
+        }
+
+        #error-banner {
+            display: none;
+            background: #FEF3CD;
+            border-bottom: 1px solid #F0C040;
+            padding: 10px 2rem;
+            font-size: 13px;
+            color: #7A5C00;
+        }
+
+        #last-updated {
+            text-align: right;
+            padding: 5px 1.5rem 0;
+            font-size: 11px;
+            color: var(--ink-faint);
+        }
+
+        .btn-refresh {
+            background: rgba(201, 168, 76, 0.12);
+            border: 1px solid rgba(201, 168, 76, 0.25);
+            color: var(--gold);
+            border-radius: 6px;
+            width: 32px;
+            height: 32px;
+            cursor: pointer;
+            font-size: 17px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: background 0.15s;
+        }
+
+        .btn-refresh:hover {
+            background: rgba(201, 168, 76, 0.22);
+        }
+
+        .btn-refresh.spinning {
+            animation: spin 0.7s linear infinite;
+        }
+
+        @keyframes spin {
+            to {
+                transform: rotate(360deg);
+            }
+        }
+    </style>
 </head>
 
 <body>
 
-    <!-- SPLASH SCREEN -->
+    <!-- SPLASH -->
     <div id="splash">
-        <div class="splash-logo">
-            <div class="splash-icon">☕</div>
-            Roster
-        </div>
+        <div class="splash-wordmark">Corebake</div>
         <div class="splash-bar-track">
             <div class="splash-bar-fill" id="splash-bar"></div>
         </div>
-        <div class="splash-status" id="splash-status">Connecting to schedule…</div>
+        <div class="splash-status" id="splash-status">Loading schedule…</div>
         <div class="splash-dots">
             <div class="splash-dot"></div>
             <div class="splash-dot"></div>
@@ -32,80 +1207,97 @@
         </div>
     </div>
 
+    <!-- APP -->
     <div id="app-content">
 
         <header>
-            <div class="logo">
-                <div class="logo-icon">☕</div>
-                Roster
-            </div>
+            <div class="logo">COREBAKE</div>
             <div class="header-right">
                 <div class="week-nav">
                     <button onclick="changeWeek(-1)">‹</button>
                     <span class="week-label" id="week-label">Loading…</span>
                     <button onclick="changeWeek(1)">›</button>
                 </div>
-                <button class="btn-refresh" id="refresh-btn" onclick="manualRefresh()">↻</button>
+                <button class="btn-refresh" id="refresh-btn" onclick="manualRefresh()"
+                    title="Sync from Google Sheet">↻</button>
                 <button class="btn-print" onclick="window.print()">Print / Save PDF</button>
-                <a href="overtime-form.html" class="btn-print" style="text-decoration: none;">Overtime Request</a>
             </div>
         </header>
 
+        <div id="loading-bar"></div>
         <div id="error-banner"></div>
         <div id="last-updated"></div>
 
         <main>
+
+            <!-- Summary -->
             <div class="summary-row" id="summary-row"></div>
 
+            <!-- Portal Buttons -->
+            <div class="portal-buttons">
+                <a href="overtime-form.html" class="portal-btn overtime">
+                    <span class="portal-btn-icon">⏱</span> Overtime Form
+                </a>
+                <a href="dayoff-form.html" class="portal-btn dayoff">
+                    <span class="portal-btn-icon">📅</span> Day Off Request
+                </a>
+            </div>
+
+            <!-- View Tabs -->
             <div class="view-tabs">
                 <button class="tab-btn active" onclick="switchView('week', this)">Week view</button>
                 <button class="tab-btn" onclick="switchView('staff', this)">By staff</button>
             </div>
 
+            <!-- Week View -->
             <div id="view-week">
-                <div class="schedule-container">
-                    <table class="schedule-table">
-                        <thead>
-                            <tr id="table-header"></tr>
-                        </thead>
-                        <tbody id="table-body"></tbody>
-                    </table>
+                <div class="schedule-wrap">
+                    <div class="schedule-container">
+                        <table class="schedule-table">
+                            <thead>
+                                <tr id="table-header"></tr>
+                            </thead>
+                            <tbody id="table-body"></tbody>
+                        </table>
+                    </div>
                 </div>
                 <div class="legend">
                     <span class="legend-label">Legend</span>
                     <div class="legend-item">
                         <div class="legend-dot"
-                            style="background:var(--teal-light);border:1px solid rgba(45,110,110,0.2)"></div>
-                        Shift 1 — FOH 08:00–14:00 · PROD 05:00–11:00
+                            style="background:var(--teal-light);border:1px solid rgba(45,110,110,0.2)"></div> Shift 1 —
+                        FOH 08:00–14:00 · PROD 05:00–11:00
                     </div>
                     <div class="legend-item">
                         <div class="legend-dot"
-                            style="background:var(--gold-light);border:1px solid rgba(196,154,60,0.2)"></div>
-                        Shift 2 — FOH 12:00–18:00 · PROD 08:00–14:00
+                            style="background:var(--gold-light);border:1px solid rgba(196,154,60,0.2)"></div> Shift 2 —
+                        FOH 12:00–18:00 · PROD 08:00–14:00
                     </div>
                     <div class="legend-item">
                         <div class="legend-dot"
-                            style="background:var(--slate-light);border:1px solid rgba(74,85,104,0.2)"></div> Full
-                        Day — FOH 08:00–18:00 · PROD 05:00–14:00
+                            style="background:var(--slate-light);border:1px solid rgba(74,85,104,0.2)"></div> Full Day —
+                        FOH 08:00–18:00 · PROD 05:00–14:00
                     </div>
                     <div class="legend-item">
                         <div class="legend-dot"
-                            style="background:var(--rose-pale);border:1px solid rgba(160,48,48,0.15)"></div> Day
-                        Off
+                            style="background:var(--rose-pale);border:1px solid rgba(160,48,48,0.15)"></div> Day Off
                     </div>
                 </div>
-                <p class="note">Tap any shift to edit it.</p>
-
                 <p class="note">Schedule syncs automatically from Google Sheet every 2 minutes.</p>
             </div>
 
+            <!-- Mobile Schedule (shown on small screens) -->
+            <div id="mobile-schedule"></div>
+
+            <!-- Staff View -->
             <div id="view-staff">
                 <div class="staff-cards" id="staff-cards"></div>
             </div>
 
         </main>
-    </div>
+    </div><!-- /app-content -->
 
+    <!-- Edit Modal -->
     <div class="modal-overlay" id="modal" onclick="closeModal(event)">
         <div class="modal">
             <h3 id="modal-title">Edit Shift</h3>
@@ -118,7 +1310,284 @@
         </div>
     </div>
 
-    <script src="script.js"></script>
+    <script>
+        // ─── CONFIG ───
+        const SHEET_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vS6FdWT2Oj6_sXZTM7c4K5mnn-j_fxommGtfVx8gcoi8C3zb2nzPNktqiYTWQhqByGyV8TZSYWhgctb/pub?output=csv';
+        const CACHE_KEY = 'corebake_roster_v1';
+        const CACHE_TTL = 90 * 1000;
+        const PROXIES = [
+            u => `https://api.allorigins.win/raw?url=${encodeURIComponent(u)}`,
+            u => `https://api.codetabs.com/v1/proxy?quest=${encodeURIComponent(u)}`,
+            u => `https://corsproxy.io/?${encodeURIComponent(u)}`,
+            u => `https://thingproxy.freeboard.io/fetch/${u}`,
+        ];
+
+        const SHIFT_TYPES = {
+            am: { label: 'Shift 1', cls: 'am' },
+            pm: { label: 'Shift 2', cls: 'pm' },
+            full: { label: 'Full Day', cls: 'full' },
+            off: { label: 'Day Off', cls: 'off' },
+        };
+        function shiftTime(type, cat) {
+            if (type === 'off') return '—';
+            const p = cat === 'kitchen';
+            if (type === 'am') return p ? '05:00–11:00' : '08:00–14:00';
+            if (type === 'pm') return p ? '08:00–14:00' : '12:00–18:00';
+            if (type === 'full') return p ? '05:00–14:00' : '08:00–18:00';
+            return '—';
+        }
+
+        let STAFF = [];
+        let scheduleData = {};
+        let weekOffset = 0;
+        const BASE_WEEK = new Date(2026, 3, 21);
+        const CAT_LABELS = { kitchen: 'Kitchen', bar: 'Bar & Coffee', floor: 'Floor' };
+        const DAY_NAMES = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
+        const MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+
+        // ─── SPLASH ───
+        function setSplash(msg, pct) {
+            const s = document.getElementById('splash-status');
+            const b = document.getElementById('splash-bar');
+            if (s) s.textContent = msg;
+            if (b && pct !== undefined) b.style.width = pct + '%';
+        }
+        function hideSplash() {
+            document.getElementById('splash').classList.add('hidden');
+            const app = document.getElementById('app-content');
+            app.classList.add('visible');
+        }
+
+        // ─── CACHE ───
+        function saveCache(csv) { try { localStorage.setItem(CACHE_KEY, JSON.stringify({ ts: Date.now(), csv })); } catch (e) { } }
+        function loadCache() {
+            try {
+                const r = localStorage.getItem(CACHE_KEY);
+                if (!r) return null;
+                const { ts, csv } = JSON.parse(r);
+                return Date.now() - ts < CACHE_TTL ? csv : null;
+            } catch (e) { return null; }
+        }
+
+        // ─── CSV ───
+        function parseCSV(text) {
+            const lines = text.trim().split(/\r?\n/);
+            const headers = lines[0].split(',').map(c => c.trim().replace(/^"|"$/g, ''));
+            return lines.slice(1).filter(l => l.trim()).map(line => {
+                const cols = []; let cur = '', inQ = false;
+                for (const ch of line) {
+                    if (ch === '"') inQ = !inQ;
+                    else if (ch === ',' && !inQ) { cols.push(cur.trim()); cur = ''; }
+                    else cur += ch;
+                }
+                cols.push(cur.trim());
+                const obj = {};
+                headers.forEach((h, i) => obj[h] = (cols[i] || '').replace(/^"|"$/g, ''));
+                return obj;
+            }).filter(r => (r['Name'] || r['name'] || '').trim());
+        }
+
+        // ─── RACE FETCH ───
+        async function raceFetch(url) {
+            return new Promise((resolve, reject) => {
+                let done = false, fails = 0;
+                PROXIES.forEach(fn => {
+                    fetch(fn(url), { cache: 'no-store' })
+                        .then(r => { if (!r.ok) throw new Error(); return r.text(); })
+                        .then(t => { if (!done && t.length > 20) { done = true; resolve(t); } })
+                        .catch(() => { if (++fails === PROXIES.length && !done) reject(new Error('All proxies failed')); });
+                });
+            });
+        }
+
+        function applyCSV(text) {
+            const rows = parseCSV(text);
+            if (!rows.length) throw new Error('Sheet is empty');
+            STAFF = rows.map(r => ({
+                name: (r['Name'] || r['name'] || '').trim(),
+                role: (r['Role'] || r['role'] || '').trim(),
+                cat: (r['Cat'] || r['cat'] || 'floor').toLowerCase().trim(),
+            }));
+            const sched = {};
+            rows.forEach((row, si) => {
+                sched[si] = {};
+                for (let di = 0; di < 6; di++) {
+                    const val = (row[`Day${di + 1}`] || row[`day${di + 1}`] || 'off').toLowerCase().trim();
+                    sched[si][di] = ['am', 'pm', 'full', 'off'].includes(val) ? val : 'off';
+                }
+            });
+            scheduleData['w0'] = sched;
+        }
+
+        // ─── FETCH ───
+        async function fetchSheet(isManual = false) {
+            if (isManual) { const b = document.getElementById('refresh-btn'); if (b) b.classList.add('spinning'); hideError(); }
+            const firstLoad = !document.getElementById('app-content').classList.contains('visible');
+            try {
+                if (firstLoad) {
+                    setSplash('Checking cache…', 20);
+                    const cached = loadCache();
+                    if (cached) {
+                        setSplash('Loading…', 65);
+                        applyCSV(cached);
+                        setSplash('Ready!', 100);
+                        setTimeout(() => { hideSplash(); render(); }, 180);
+                        raceFetch(SHEET_URL).then(t => { saveCache(t); applyCSV(t); render(); syncTime(); }).catch(() => { });
+                        return;
+                    }
+                    setSplash('Fetching schedule…', 35);
+                }
+                const text = await raceFetch(SHEET_URL);
+                saveCache(text);
+                applyCSV(text);
+                if (firstLoad) {
+                    setSplash('Ready!', 100);
+                    setTimeout(() => { hideSplash(); render(); syncTime(); }, 220);
+                } else { render(); syncTime(); }
+            } catch (e) {
+                if (firstLoad) hideSplash();
+                showError(e.message);
+            } finally {
+                const b = document.getElementById('refresh-btn'); if (b) b.classList.remove('spinning');
+            }
+        }
+
+        function manualRefresh() { fetchSheet(true); }
+        function syncTime() { const e = document.getElementById('last-updated'); if (e) e.textContent = 'Synced: ' + new Date().toLocaleTimeString(); }
+        function showError(m) { const e = document.getElementById('error-banner'); if (e) { e.innerHTML = '⚠ ' + m + ' &nbsp;·&nbsp; <a href="' + SHEET_URL + '" target="_blank" style="color:inherit;text-decoration:underline">Open Sheet</a>'; e.style.display = 'block'; } }
+        function hideError() { const e = document.getElementById('error-banner'); if (e) e.style.display = 'none'; }
+
+        // ─── HELPERS ───
+        function weekKey(o) { return `w${o}`; }
+        function getSchedule(offset) {
+            if (!scheduleData[weekKey(offset)]) {
+                const s = {};
+                STAFF.forEach((_, si) => { s[si] = {}; for (let di = 0; di < 6; di++) s[si][di] = 'off'; });
+                scheduleData[weekKey(offset)] = s;
+            }
+            return scheduleData[weekKey(offset)];
+        }
+        function getWeekDates(offset) {
+            return Array.from({ length: 6 }, (_, i) => { const d = new Date(BASE_WEEK); d.setDate(d.getDate() + offset * 7 + i); return d; });
+        }
+        function formatDate(d) { return `${DAY_NAMES[d.getDay() === 0 ? 6 : d.getDay() - 1]} ${d.getDate()}`; }
+        function formatWeekLabel(dates) { return `${MONTHS[dates[0].getMonth()]} ${dates[0].getDate()} – ${dates[5].getDate()}`; }
+
+        // ─── RENDER ───
+        function render() {
+            if (!STAFF.length) return;
+            const dates = getWeekDates(weekOffset);
+            const sched = getSchedule(weekOffset);
+            document.getElementById('week-label').textContent = formatWeekLabel(dates);
+            renderSummary(sched);
+            renderTable(dates, sched);
+            renderMobile(dates, sched);
+            renderStaffCards(dates, sched);
+        }
+
+        function renderSummary(sched) {
+            let total = 0, am = 0, pm = 0, full = 0, off = 0;
+            STAFF.forEach((_, si) => {
+                for (let di = 0; di < 6; di++) {
+                    const t = sched[si] ? sched[si][di] : 'off';
+                    if (t === 'off') off++; else { total++; if (t === 'am') am++; else if (t === 'pm') pm++; else if (t === 'full') full++; }
+                }
+            });
+            document.getElementById('summary-row').innerHTML = `
+    <div class="summary-card"><div class="label">Total staff</div><div class="value">${STAFF.length}</div><div class="sub">across all roles</div></div>
+    <div class="summary-card"><div class="label">Shifts this week</div><div class="value">${total}</div><div class="sub">${off} days off</div></div>
+    <div class="summary-card"><div class="label">Shift 1 (AM)</div><div class="value">${am}</div><div class="sub">PROD 05:00 · FOH 08:00</div></div>
+    <div class="summary-card"><div class="label">Shift 2 (PM)</div><div class="value">${pm}</div><div class="sub">PROD 08:00 · FOH 12:00</div></div>
+    <div class="summary-card"><div class="label">Full Day</div><div class="value">${full}</div><div class="sub">PROD 05:00 · FOH 08:00</div></div>`;
+        }
+
+        function renderTable(dates, sched) {
+            const today = new Date();
+            let hHtml = `<th>Staff member</th>`;
+            dates.forEach(d => {
+                const isToday = d.toDateString() === today.toDateString();
+                hHtml += `<th class="${isToday ? 'today-header' : ''}"><span class="day-name">${d.getDate()}</span><span class="day-sub">${DAY_NAMES[d.getDay() === 0 ? 6 : d.getDay() - 1]}</span></th>`;
+            });
+            document.getElementById('table-header').innerHTML = hHtml;
+            let bHtml = ''; let lastCat = null;
+            STAFF.forEach((s, si) => {
+                if (s.cat !== lastCat) { bHtml += `<tr class="section-row"><td colspan="7">${CAT_LABELS[s.cat] || s.cat}</td></tr>`; lastCat = s.cat; }
+                bHtml += `<tr class="staff-row"><td class="staff-cell"><div class="staff-name">${s.name}</div><div class="staff-role">${s.role}</div></td>`;
+                for (let di = 0; di < 6; di++) {
+                    const type = sched[si] ? (sched[si][di] || 'off') : 'off';
+                    const sh = SHIFT_TYPES[type] || SHIFT_TYPES.off;
+                    bHtml += `<td class="shift-cell"><div class="chip ${sh.cls}">${sh.label}<span class="chip-time">${shiftTime(type, s.cat)}</span></div></td>`;
+                }
+                bHtml += `</tr>`;
+            });
+            document.getElementById('table-body').innerHTML = bHtml;
+        }
+
+        function renderMobile(dates, sched) {
+            const today = new Date();
+            const CAT_ORDER = ['kitchen', 'floor', 'bar'];
+            let html = '';
+            dates.forEach((d, di) => {
+                const isToday = d.toDateString() === today.toDateString();
+                html += `<div class="mobile-day-group"><div class="mobile-day-header ${isToday ? 'today' : ''}">
+      <span class="mobile-day-num">${d.getDate()}</span>
+      <span class="mobile-day-name">${DAY_NAMES[d.getDay() === 0 ? 6 : d.getDay() - 1]}${isToday ? ' · Today' : ''}</span>
+    </div><div class="mobile-day-body">`;
+                let lastCat = null;
+                const sorted = STAFF.map((s, si) => ({ s, si })).sort((a, b) => CAT_ORDER.indexOf(a.s.cat) - CAT_ORDER.indexOf(b.s.cat));
+                sorted.forEach(({ s, si }) => {
+                    if (s.cat !== lastCat) { html += `<div class="mobile-cat-divider">${CAT_LABELS[s.cat] || s.cat}</div>`; lastCat = s.cat; }
+                    const type = sched[si] ? (sched[si][di] || 'off') : 'off';
+                    const sh = SHIFT_TYPES[type] || SHIFT_TYPES.off;
+                    html += `<div class="mobile-staff-row"><div><div class="mobile-name">${s.name}</div><div class="mobile-role">${s.role}</div></div>
+        <div class="mobile-chip ${sh.cls}">${sh.label}${type !== 'off' ? ' · ' + shiftTime(type, s.cat) : ''}</div></div>`;
+                });
+                html += `</div></div>`;
+            });
+            document.getElementById('mobile-schedule').innerHTML = html;
+        }
+
+        function renderStaffCards(dates, sched) {
+            let html = '';
+            STAFF.forEach((s, si) => {
+                const initials = s.name.substring(0, 2).toUpperCase();
+                html += `<div class="staff-card" style="animation-delay:${si * 0.04}s">
+      <div class="staff-card-header">
+        <div class="avatar ${s.cat}">${initials}</div>
+        <div><div style="font-size:15px;font-weight:500">${s.name}</div><div style="font-size:12px;color:var(--ink-muted)">${s.role}</div></div>
+      </div>
+      <div class="staff-card-body">
+        <div style="font-size:11px;color:var(--ink-muted);margin-bottom:8px;text-transform:uppercase;letter-spacing:0.05em;font-weight:500">This week</div>
+        <div class="week-chips">`;
+                dates.forEach((d, di) => {
+                    const type = sched[si] ? (sched[si][di] || 'off') : 'off';
+                    const sh = SHIFT_TYPES[type] || SHIFT_TYPES.off;
+                    html += `<div class="mini-chip ${sh.cls}" title="${formatDate(d)}: ${sh.label} ${shiftTime(type, s.cat)}">${d.getDate()} ${sh.label}</div>`;
+                });
+                html += `</div></div></div>`;
+            });
+            document.getElementById('staff-cards').innerHTML = html;
+        }
+
+        // ─── WEEK NAV ───
+        function changeWeek(dir) { weekOffset += dir; render(); }
+
+        // ─── VIEW TABS ───
+        function switchView(view, btn) {
+            document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+            document.getElementById('view-week').style.display = view === 'week' ? 'block' : 'none';
+            document.getElementById('view-staff').style.display = view === 'staff' ? 'block' : 'none';
+        }
+
+        // ─── MODAL (stub) ───
+        function closeModal(e) { if (e && e.target !== document.getElementById('modal')) return; document.getElementById('modal').classList.remove('open'); }
+        function saveShift() { }
+
+        // ─── INIT ───
+        fetchSheet();
+        setInterval(() => fetchSheet(false), 2 * 60 * 1000);
+    </script>
 </body>
 
 </html>
