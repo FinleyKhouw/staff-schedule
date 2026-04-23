@@ -653,7 +653,7 @@
 
   <script>
     // ─── CONFIG ───
-    const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwdXBjFI9hVRPnFMSX_4-JEXX5JktjKBVum7HDHzeCzIzEteSwxx-fDupBOYBwAFXmN/exec';
+    const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxCg8bAc3G_0mUUPRJScvenHPIyl8f_Hk0vsrVIOELzuxS3ce56o8BawYAsormzXHc9/exec';
 
     // Same Google Sheet CSV as the schedule page
     const SHEET_CSV_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vS6FdWT2Oj6_sXZTM7c4K5mnn-j_fxommGtfVx8gcoi8C3zb2nzPNktqiYTWQhqByGyV8TZSYWhgctb/pub?output=csv';
@@ -856,9 +856,11 @@
       label.textContent = 'Submitting…';
 
       try {
+        // Google Apps Script requires text/plain with no-cors
         await fetch(APPS_SCRIPT_URL, {
-          method: 'POST', mode: 'no-cors',
-          headers: { 'Content-Type': 'application/json' },
+          method: 'POST',
+          mode: 'no-cors',
+          headers: { 'Content-Type': 'text/plain' },
           body: JSON.stringify(payload),
         });
         showSuccess(payload);
