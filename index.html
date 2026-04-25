@@ -1160,6 +1160,39 @@
             color: var(--ink-faint);
         }
 
+        .chip.unassigned {
+            background: rgba(92, 0, 24, 0.06);
+            color: var(--brand);
+            border: 1px dashed rgba(92, 0, 24, 0.25);
+            font-style: italic;
+            opacity: 0.75;
+        }
+
+        .mini-chip.unassigned {
+            background: rgba(92, 0, 24, 0.06);
+            color: var(--brand);
+            font-style: italic;
+            border: 1px dashed rgba(92, 0, 24, 0.2);
+        }
+
+        .mobile-chip.unassigned {
+            background: rgba(92, 0, 24, 0.06);
+            color: var(--brand);
+            font-style: italic;
+        }
+
+        /* Week badge in header */
+        .week-badge {
+            font-size: 10px;
+            font-weight: 600;
+            letter-spacing: 0.08em;
+            text-transform: uppercase;
+            background: rgba(201, 168, 76, 0.15);
+            color: var(--gold);
+            border-radius: 5px;
+            padding: 2px 7px;
+        }
+
         .btn-refresh {
             background: rgba(201, 168, 76, 0.12);
             border: 1px solid rgba(201, 168, 76, 0.25);
@@ -1215,6 +1248,7 @@
             <div class="header-right">
                 <div class="week-nav">
                     <button onclick="changeWeek(-1)">‹</button>
+                    <span class="week-badge" id="week-badge">Wk 1</span>
                     <span class="week-label" id="week-label">Loading…</span>
                     <button onclick="changeWeek(1)">›</button>
                 </div>
@@ -1313,7 +1347,7 @@
     <script>
         // ─── CONFIG ───
         const SHEET_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vS6FdWT2Oj6_sXZTM7c4K5mnn-j_fxommGtfVx8gcoi8C3zb2nzPNktqiYTWQhqByGyV8TZSYWhgctb/pub?output=csv';
-        const CACHE_KEY = 'corebake_roster_v1';
+        const CACHE_KEY = 'corebake_roster_v2';
         const CACHE_TTL = 90 * 1000;
         const PROXIES = [
             u => `https://api.allorigins.win/raw?url=${encodeURIComponent(u)}`,
@@ -1322,14 +1356,22 @@
             u => `https://thingproxy.freeboard.io/fetch/${u}`,
         ];
 
+        // ─── BIWEEKLY CONFIG ───
+        // BASE_WEEK = start of the first scheduled week (Mon Apr 21 2026)
+        // The schedule covers exactly 2 weeks: week 0 (Day1–Day6) and week 1 (Day7–Day12)
+        // weekOffset is clamped to 0 or 1 — nav wraps cyclically
+        const BASE_WEEK = new Date(2026, 3, 21);
+        const MAX_WEEKS = 2; // biweekly
+
         const SHIFT_TYPES = {
             am: { label: 'Shift 1', cls: 'am' },
             pm: { label: 'Shift 2', cls: 'pm' },
             full: { label: 'Full Day', cls: 'full' },
             off: { label: 'Day Off', cls: 'off' },
+            none: { label: 'Unassigned', cls: 'unassigned' },
         };
         function shiftTime(type, cat) {
-            if (type === 'off') return '—';
+            if (type === 'off' || type === 'none') return '—';
             const p = cat === 'kitchen';
             if (type === 'am') return p ? '05:00–11:00' : '08:00–14:00';
             if (type === 'pm') return p ? '08:00–14:00' : '12:00–18:00';
@@ -1340,7 +1382,6 @@
         let STAFF = [];
         let scheduleData = {};
         let weekOffset = 0;
-        const BASE_WEEK = new Date(2026, 3, 21);
         const CAT_LABELS = { kitchen: 'Kitchen', bar: 'Bar & Coffee', floor: 'Floor' };
         const DAY_NAMES = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
         const MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
@@ -1354,8 +1395,7 @@
         }
         function hideSplash() {
             document.getElementById('splash').classList.add('hidden');
-            const app = document.getElementById('app-content');
-            app.classList.add('visible');
+            document.getElementById('app-content').classList.add('visible');
         }
 
         // ─── CACHE ───
@@ -1403,20 +1443,34 @@
         function applyCSV(text) {
             const rows = parseCSV(text);
             if (!rows.length) throw new Error('Sheet is empty');
+
             STAFF = rows.map(r => ({
                 name: (r['Name'] || r['name'] || '').trim(),
                 role: (r['Role'] || r['role'] || '').trim(),
                 cat: (r['Cat'] || r['cat'] || 'floor').toLowerCase().trim(),
             }));
-            const sched = {};
+
+            // Week 0: Day1–Day6 columns
+            const sched0 = {};
             rows.forEach((row, si) => {
-                sched[si] = {};
+                sched0[si] = {};
                 for (let di = 0; di < 6; di++) {
-                    const val = (row[`Day${di + 1}`] || row[`day${di + 1}`] || 'off').toLowerCase().trim();
-                    sched[si][di] = ['am', 'pm', 'full', 'off'].includes(val) ? val : 'off';
+                    const val = (row[`Day${di + 1}`] || row[`day${di + 1}`] || '').toLowerCase().trim();
+                    sched0[si][di] = ['am', 'pm', 'full', 'off'].includes(val) ? val : 'off';
                 }
             });
-            scheduleData['w0'] = sched;
+            scheduleData['w0'] = sched0;
+
+            // Week 1: Day7–Day12 columns — 'none' (Unassigned) if missing
+            const sched1 = {};
+            rows.forEach((row, si) => {
+                sched1[si] = {};
+                for (let di = 0; di < 6; di++) {
+                    const val = (row[`Day${di + 7}`] || row[`day${di + 7}`] || '').toLowerCase().trim();
+                    sched1[si][di] = ['am', 'pm', 'full', 'off'].includes(val) ? val : 'none';
+                }
+            });
+            scheduleData['w1'] = sched1;
         }
 
         // ─── FETCH ───
@@ -1431,6 +1485,8 @@
                         setSplash('Loading…', 65);
                         applyCSV(cached);
                         setSplash('Ready!', 100);
+                        // Auto-jump to current week within the biweek
+                        autoSetWeek();
                         setTimeout(() => { hideSplash(); render(); }, 180);
                         raceFetch(SHEET_URL).then(t => { saveCache(t); applyCSV(t); render(); syncTime(); }).catch(() => { });
                         return;
@@ -1441,6 +1497,7 @@
                 saveCache(text);
                 applyCSV(text);
                 if (firstLoad) {
+                    autoSetWeek();
                     setSplash('Ready!', 100);
                     setTimeout(() => { hideSplash(); render(); syncTime(); }, 220);
                 } else { render(); syncTime(); }
@@ -1452,6 +1509,23 @@
             }
         }
 
+        // Auto-detect which week (0 or 1) today falls in
+        function autoSetWeek() {
+            const today = new Date();
+            today.setHours(0, 0, 0, 0);
+            const week1Start = new Date(BASE_WEEK);
+            const week2Start = new Date(BASE_WEEK);
+            week2Start.setDate(week2Start.getDate() + 7);
+            const week1End = new Date(week2Start); week1End.setDate(week1End.getDate() - 1);
+            const week2End = new Date(week2Start); week2End.setDate(week2End.getDate() + 6);
+
+            if (today >= week2Start && today <= week2End) {
+                weekOffset = 1;
+            } else {
+                weekOffset = 0;
+            }
+        }
+
         function manualRefresh() { fetchSheet(true); }
         function syncTime() { const e = document.getElementById('last-updated'); if (e) e.textContent = 'Synced: ' + new Date().toLocaleTimeString(); }
         function showError(m) { const e = document.getElementById('error-banner'); if (e) { e.innerHTML = '⚠ ' + m + ' &nbsp;·&nbsp; <a href="' + SHEET_URL + '" target="_blank" style="color:inherit;text-decoration:underline">Open Sheet</a>'; e.style.display = 'block'; } }
@@ -1459,38 +1533,84 @@
 
         // ─── HELPERS ───
         function weekKey(o) { return `w${o}`; }
+
         function getSchedule(offset) {
-            if (!scheduleData[weekKey(offset)]) {
+            const key = weekKey(offset);
+            if (!scheduleData[key]) {
+                // Return all-unassigned if not loaded yet
                 const s = {};
-                STAFF.forEach((_, si) => { s[si] = {}; for (let di = 0; di < 6; di++) s[si][di] = 'off'; });
-                scheduleData[weekKey(offset)] = s;
+                STAFF.forEach((_, si) => { s[si] = {}; for (let di = 0; di < 6; di++) s[si][di] = 'none'; });
+                scheduleData[key] = s;
             }
-            return scheduleData[weekKey(offset)];
+            return scheduleData[key];
         }
+
         function getWeekDates(offset) {
-            return Array.from({ length: 6 }, (_, i) => { const d = new Date(BASE_WEEK); d.setDate(d.getDate() + offset * 7 + i); return d; });
+            return Array.from({ length: 6 }, (_, i) => {
+                const d = new Date(BASE_WEEK);
+                d.setDate(d.getDate() + offset * 7 + i);
+                return d;
+            });
         }
         function formatDate(d) { return `${DAY_NAMES[d.getDay() === 0 ? 6 : d.getDay() - 1]} ${d.getDate()}`; }
-        function formatWeekLabel(dates) { return `${MONTHS[dates[0].getMonth()]} ${dates[0].getDate()} – ${dates[5].getDate()}`; }
+        function formatWeekLabel(dates) {
+            return `${MONTHS[dates[0].getMonth()]} ${dates[0].getDate()} – ${dates[5].getDate()}`;
+        }
+
+        // ─── WEEK NAV — clamp to 0 and 1 ───
+        function changeWeek(dir) {
+            weekOffset = (weekOffset + dir + MAX_WEEKS) % MAX_WEEKS;
+            render();
+        }
 
         // ─── RENDER ───
         function render() {
             if (!STAFF.length) return;
             const dates = getWeekDates(weekOffset);
             const sched = getSchedule(weekOffset);
+            const weekNum = weekOffset + 1;
+
+            const isUnassigned = scheduleData[`w${weekOffset}`] &&
+                Object.values(scheduleData[`w${weekOffset}`]).every(d =>
+                    Object.values(d).every(v => v === 'none')
+                );
+
+            // Update header
+            const badge = document.getElementById('week-badge');
+            if (badge) badge.textContent = `Wk ${weekNum}`;
             document.getElementById('week-label').textContent = formatWeekLabel(dates);
-            renderSummary(sched);
+
+            // Show/hide unassigned notice
+            let notice = document.getElementById('unassigned-notice');
+            if (!notice) {
+                notice = document.createElement('div');
+                notice.id = 'unassigned-notice';
+                notice.style.cssText = `background:rgba(92,0,24,0.06);border:1px dashed rgba(92,0,24,0.2);border-radius:10px;padding:12px 16px;font-size:13px;color:var(--brand);margin-bottom:1.25rem;`;
+                document.getElementById('view-week').prepend(notice);
+            }
+            notice.style.display = isUnassigned ? 'block' : 'none';
+            notice.innerHTML = `📋 <strong>Week ${weekNum} (${formatWeekLabel(dates)}) — schedule not yet assigned.</strong> The manager will update this before the week begins.`;
+
+            renderSummary(sched, isUnassigned);
             renderTable(dates, sched);
             renderMobile(dates, sched);
             renderStaffCards(dates, sched);
         }
 
-        function renderSummary(sched) {
+        function renderSummary(sched, isUnassigned) {
+            if (isUnassigned) {
+                document.getElementById('summary-row').innerHTML = `
+      <div class="summary-card"><div class="label">Total staff</div><div class="value">${STAFF.length}</div><div class="sub">across all roles</div></div>
+      <div class="summary-card" style="grid-column:span 4"><div class="label">Status</div><div class="value" style="font-size:1.1rem;padding-top:4px">Schedule not yet assigned</div><div class="sub">Check back closer to the week</div></div>`;
+                return;
+            }
             let total = 0, am = 0, pm = 0, full = 0, off = 0;
             STAFF.forEach((_, si) => {
                 for (let di = 0; di < 6; di++) {
-                    const t = sched[si] ? sched[si][di] : 'off';
-                    if (t === 'off') off++; else { total++; if (t === 'am') am++; else if (t === 'pm') pm++; else if (t === 'full') full++; }
+                    const t = sched[si] ? sched[si][di] : 'none';
+                    if (t === 'off') off++;
+                    else if (t === 'none') { /* skip */ }
+                    else { total++; if (t === 'am') am++; else if (t === 'pm') pm++; else if (t === 'full') full++; }
                 }
             });
             document.getElementById('summary-row').innerHTML = `
@@ -1509,14 +1629,16 @@
                 hHtml += `<th class="${isToday ? 'today-header' : ''}"><span class="day-name">${d.getDate()}</span><span class="day-sub">${DAY_NAMES[d.getDay() === 0 ? 6 : d.getDay() - 1]}</span></th>`;
             });
             document.getElementById('table-header').innerHTML = hHtml;
+
             let bHtml = ''; let lastCat = null;
             STAFF.forEach((s, si) => {
                 if (s.cat !== lastCat) { bHtml += `<tr class="section-row"><td colspan="7">${CAT_LABELS[s.cat] || s.cat}</td></tr>`; lastCat = s.cat; }
                 bHtml += `<tr class="staff-row"><td class="staff-cell"><div class="staff-name">${s.name}</div><div class="staff-role">${s.role}</div></td>`;
                 for (let di = 0; di < 6; di++) {
-                    const type = sched[si] ? (sched[si][di] || 'off') : 'off';
-                    const sh = SHIFT_TYPES[type] || SHIFT_TYPES.off;
-                    bHtml += `<td class="shift-cell"><div class="chip ${sh.cls}">${sh.label}<span class="chip-time">${shiftTime(type, s.cat)}</span></div></td>`;
+                    const type = (sched[si] && sched[si][di]) || 'none';
+                    const sh = SHIFT_TYPES[type] || SHIFT_TYPES.none;
+                    const time = type !== 'none' && type !== 'off' ? `<span class="chip-time">${shiftTime(type, s.cat)}</span>` : '';
+                    bHtml += `<td class="shift-cell"><div class="chip ${sh.cls}">${sh.label}${time}</div></td>`;
                 }
                 bHtml += `</tr>`;
             });
@@ -1537,10 +1659,11 @@
                 const sorted = STAFF.map((s, si) => ({ s, si })).sort((a, b) => CAT_ORDER.indexOf(a.s.cat) - CAT_ORDER.indexOf(b.s.cat));
                 sorted.forEach(({ s, si }) => {
                     if (s.cat !== lastCat) { html += `<div class="mobile-cat-divider">${CAT_LABELS[s.cat] || s.cat}</div>`; lastCat = s.cat; }
-                    const type = sched[si] ? (sched[si][di] || 'off') : 'off';
-                    const sh = SHIFT_TYPES[type] || SHIFT_TYPES.off;
+                    const type = (sched[si] && sched[si][di]) || 'none';
+                    const sh = SHIFT_TYPES[type] || SHIFT_TYPES.none;
+                    const time = type !== 'none' && type !== 'off' ? ' · ' + shiftTime(type, s.cat) : '';
                     html += `<div class="mobile-staff-row"><div><div class="mobile-name">${s.name}</div><div class="mobile-role">${s.role}</div></div>
-        <div class="mobile-chip ${sh.cls}">${sh.label}${type !== 'off' ? ' · ' + shiftTime(type, s.cat) : ''}</div></div>`;
+        <div class="mobile-chip ${sh.cls}">${sh.label}${time}</div></div>`;
                 });
                 html += `</div></div>`;
             });
@@ -1557,20 +1680,17 @@
         <div><div style="font-size:15px;font-weight:500">${s.name}</div><div style="font-size:12px;color:var(--ink-muted)">${s.role}</div></div>
       </div>
       <div class="staff-card-body">
-        <div style="font-size:11px;color:var(--ink-muted);margin-bottom:8px;text-transform:uppercase;letter-spacing:0.05em;font-weight:500">This week</div>
+        <div style="font-size:11px;color:var(--ink-muted);margin-bottom:8px;text-transform:uppercase;letter-spacing:0.05em;font-weight:500">Week ${weekOffset + 1}</div>
         <div class="week-chips">`;
                 dates.forEach((d, di) => {
-                    const type = sched[si] ? (sched[si][di] || 'off') : 'off';
-                    const sh = SHIFT_TYPES[type] || SHIFT_TYPES.off;
-                    html += `<div class="mini-chip ${sh.cls}" title="${formatDate(d)}: ${sh.label} ${shiftTime(type, s.cat)}">${d.getDate()} ${sh.label}</div>`;
+                    const type = (sched[si] && sched[si][di]) || 'none';
+                    const sh = SHIFT_TYPES[type] || SHIFT_TYPES.none;
+                    html += `<div class="mini-chip ${sh.cls}" title="${formatDate(d)}: ${sh.label}">${d.getDate()} ${sh.label}</div>`;
                 });
                 html += `</div></div></div>`;
             });
             document.getElementById('staff-cards').innerHTML = html;
         }
-
-        // ─── WEEK NAV ───
-        function changeWeek(dir) { weekOffset += dir; render(); }
 
         // ─── VIEW TABS ───
         function switchView(view, btn) {
