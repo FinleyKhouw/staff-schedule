@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Bakehouse Attendance</title>
+  <link rel="stylesheet" href="./style.css" />
+</head>
+<body>
+  <header class="topbar">
+    <h1>Bakehouse Attendance</h1>
+    <p>QR scan + selfie clock in/out</p>
+  </header>
+
+  <main class="layout">
+    <section class="card employee">
+      <h2>Employee Kiosk</h2>
+      <div class="qr-box">
+        <p>Scan this shift QR:</p>
+        <img id="qrImage" alt="Shift QR code" />
+        <p class="hint">Assigned shift token: <strong id="shiftTokenLabel"></strong></p>
+      </div>
+
+      <label for="employeeName">Employee name</label>
+      <input id="employeeName" placeholder="e.g. Rina" />
+
+      <label for="assignedShift">Assigned shift</label>
+      <select id="assignedShift">
+        <option value="morning">Morning (06:00-14:00)</option>
+        <option value="afternoon">Afternoon (14:00-22:00)</option>
+      </select>
+
+      <label for="scanToken">Scanned QR token</label>
+      <input id="scanToken" placeholder="Enter scanned token" />
+
+      <div class="camera-wrap">
+        <video id="camera" autoplay playsinline></video>
+        <canvas id="selfieCanvas" width="320" height="240" hidden></canvas>
+        <img id="selfiePreview" alt="Selfie preview" hidden />
+      </div>
+
+      <div class="row">
+        <button id="startCameraBtn">Start Camera</button>
+        <button id="captureBtn">Capture Selfie</button>
+      </div>
+
+      <div class="row">
+        <button id="clockInBtn" class="primary">Clock In</button>
+        <button id="clockOutBtn" class="danger">Clock Out</button>
+      </div>
+
+      <p id="employeeStatus" class="status"></p>
+    </section>
+
+    <section class="card admin">
+      <h2>Admin Dashboard</h2>
+      <div class="metrics">
+        <div><span id="totalEmployees">0</span><small>Total Employees</small></div>
+        <div><span id="attendedCount">0</span><small>Attended Shift</small></div>
+        <div><span id="missingCount">0</span><small>Not Attended</small></div>
+        <div><span id="overtimeCount">0</span><small>Overtime Employees</small></div>
+      </div>
+
+      <table>
+        <thead>
+          <tr>
+            <th>Name</th>
+            <th>Assigned Shift</th>
+            <th>Clock In</th>
+            <th>Clock Out</th>
+            <th>Attendance</th>
+            <th>Overtime</th>
+          </tr>
+        </thead>
+        <tbody id="attendanceBody"></tbody>
+      </table>
+    </section>
+  </main>
+
+  <script src="./script.js"></script>
+</body>
+</html>
