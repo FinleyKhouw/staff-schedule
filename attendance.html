@@ -1,0 +1,1377 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Attendance — Corebake</title>
+  <link
+    href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;500;600&family=DM+Sans:wght@300;400;500;600&display=swap"
+    rel="stylesheet">
+  <style>
+    :root {
+      --bg: #F7F3EE;
+      --warm-white: #FDFAF6;
+      --brand: #5c0018;
+      --brand-deep: #3d0010;
+      --gold: #C9A84C;
+      --gold-light: #F5EDD6;
+      --gold-pale: #FBF7ED;
+      --gold-dark: #8B6914;
+      --teal: #2D6E6E;
+      --teal-light: #D4EAEA;
+      --green: #2D6A4F;
+      --green-light: #D8F3DC;
+      --rose: #A03030;
+      --rose-pale: #F8EAEA;
+      --slate: #4A5568;
+      --slate-light: #EDF0F5;
+      --ink: #1A0A0E;
+      --ink-muted: #6B5560;
+      --ink-faint: #C4AEB6;
+      --border: rgba(92, 0, 24, 0.12);
+      --shadow: 0 2px 8px rgba(92, 0, 24, 0.07), 0 8px 32px rgba(92, 0, 24, 0.04);
+    }
+
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: 'DM Sans', sans-serif;
+      background: var(--bg);
+      color: var(--ink);
+      min-height: 100vh;
+    }
+
+    header {
+      background: var(--brand);
+      color: var(--gold);
+      padding: 0 2rem;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      height: 64px;
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      border-bottom: 1px solid rgba(201, 168, 76, 0.15);
+    }
+
+    .logo {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 1.5rem;
+      font-weight: 600;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+      color: var(--gold);
+    }
+
+    .header-link {
+      font-size: 12px;
+      color: rgba(201, 168, 76, 0.55);
+      text-decoration: none;
+      transition: color 0.15s;
+    }
+
+    .header-link:hover {
+      color: var(--gold);
+    }
+
+    main {
+      max-width: 460px;
+      margin: 0 auto;
+      padding: 2rem 1.25rem 5rem;
+    }
+
+    /* LIVE CLOCK */
+    .clock-card {
+      background: var(--brand);
+      border-radius: 20px;
+      padding: 1.75rem 2rem;
+      text-align: center;
+      margin-bottom: 1.5rem;
+      box-shadow: 0 4px 24px rgba(92, 0, 24, 0.3);
+    }
+
+    .clock-time {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 3.8rem;
+      font-weight: 600;
+      color: var(--gold);
+      line-height: 1;
+      letter-spacing: 0.04em;
+    }
+
+    .clock-date {
+      font-size: 12px;
+      color: rgba(201, 168, 76, 0.55);
+      margin-top: 6px;
+      letter-spacing: 0.04em;
+    }
+
+    /* STEP SYSTEM */
+    .step-container {
+      display: none;
+    }
+
+    .step-container.active {
+      display: block;
+      animation: stepIn 0.3s ease;
+    }
+
+    @keyframes stepIn {
+      from {
+        opacity: 0;
+        transform: translateY(10px);
+      }
+
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    /* STEP INDICATOR */
+    .step-indicator {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0;
+      margin-bottom: 1.5rem;
+    }
+
+    .step-dot {
+      width: 28px;
+      height: 28px;
+      border-radius: 50%;
+      background: rgba(92, 0, 24, 0.1);
+      color: var(--ink-faint);
+      font-size: 11px;
+      font-weight: 700;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: all 0.25s;
+      position: relative;
+      z-index: 1;
+    }
+
+    .step-dot.active {
+      background: var(--brand);
+      color: var(--gold);
+    }
+
+    .step-dot.done {
+      background: var(--green);
+      color: white;
+    }
+
+    .step-line {
+      width: 40px;
+      height: 2px;
+      background: rgba(92, 0, 24, 0.1);
+    }
+
+    .step-line.done {
+      background: var(--green);
+    }
+
+    /* CARD */
+    .card {
+      background: var(--warm-white);
+      border: 1px solid var(--border);
+      border-radius: 20px;
+      padding: 1.75rem;
+      box-shadow: var(--shadow);
+      margin-bottom: 1rem;
+    }
+
+    .card-title {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 1.5rem;
+      font-weight: 600;
+      color: var(--ink);
+      margin-bottom: 4px;
+    }
+
+    .card-sub {
+      font-size: 13px;
+      color: var(--ink-muted);
+      line-height: 1.6;
+      margin-bottom: 1.5rem;
+    }
+
+    /* TYPE TOGGLE */
+    .type-toggle {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+      margin-bottom: 1.5rem;
+    }
+
+    .type-btn {
+      border: 2px solid var(--border);
+      border-radius: 14px;
+      padding: 16px 10px;
+      background: none;
+      cursor: pointer;
+      text-align: center;
+      transition: all 0.15s;
+      font-family: 'DM Sans', sans-serif;
+    }
+
+    .type-btn:hover {
+      border-color: var(--gold);
+    }
+
+    .type-btn.selected.in {
+      border-color: var(--brand);
+      background: rgba(92, 0, 24, 0.05);
+    }
+
+    .type-btn.selected.out {
+      border-color: var(--gold-dark);
+      background: var(--gold-pale);
+    }
+
+    .type-btn .t-icon {
+      font-size: 26px;
+      display: block;
+      margin-bottom: 6px;
+    }
+
+    .type-btn .t-label {
+      font-size: 14px;
+      font-weight: 600;
+      color: var(--ink);
+    }
+
+    .type-btn .t-sub {
+      font-size: 11px;
+      color: var(--ink-muted);
+      margin-top: 2px;
+    }
+
+    /* FIELDS */
+    label {
+      display: block;
+      font-size: 11px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.07em;
+      color: var(--ink-muted);
+      margin-bottom: 7px;
+    }
+
+    .req {
+      color: var(--rose);
+      margin-left: 2px;
+    }
+
+    select {
+      width: 100%;
+      background: var(--bg);
+      border: 1.5px solid var(--border);
+      border-radius: 10px;
+      padding: 11px 14px;
+      font-family: 'DM Sans', sans-serif;
+      font-size: 14px;
+      color: var(--ink);
+      appearance: none;
+      -webkit-appearance: none;
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%236B5560' stroke-width='1.5' fill='none' stroke-linecap='round'/%3E%3C/svg%3E");
+      background-repeat: no-repeat;
+      background-position: right 14px center;
+      padding-right: 36px;
+      cursor: pointer;
+      transition: border-color 0.15s, box-shadow 0.15s;
+      margin-bottom: 1.25rem;
+    }
+
+    select:focus {
+      outline: none;
+      border-color: var(--gold);
+      box-shadow: 0 0 0 3px rgba(201, 168, 76, 0.13);
+      background-color: var(--warm-white);
+    }
+
+    /* STATUS PILL */
+    .status-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 7px;
+      padding: 7px 13px;
+      border-radius: 30px;
+      font-size: 12px;
+      font-weight: 600;
+      margin-bottom: 1.25rem;
+    }
+
+    .status-pill.free {
+      background: rgba(92, 0, 24, 0.06);
+      color: var(--brand);
+      border: 1px solid rgba(92, 0, 24, 0.15);
+    }
+
+    .status-pill.clocked-in {
+      background: var(--green-light);
+      color: var(--green);
+      border: 1px solid rgba(45, 106, 79, 0.2);
+    }
+
+    .status-dot {
+      width: 7px;
+      height: 7px;
+      border-radius: 50%;
+      background: currentColor;
+      opacity: 0.7;
+    }
+
+    .status-dot.pulse {
+      animation: dotpulse 1.4s ease-in-out infinite;
+    }
+
+    @keyframes dotpulse {
+
+      0%,
+      100% {
+        opacity: 0.3;
+        transform: scale(1);
+      }
+
+      50% {
+        opacity: 1;
+        transform: scale(1.4);
+      }
+    }
+
+    /* PRIMARY BUTTON */
+    .btn-primary {
+      width: 100%;
+      background: var(--brand);
+      color: var(--gold);
+      border: none;
+      border-radius: 12px;
+      padding: 15px;
+      font-family: 'DM Sans', sans-serif;
+      font-size: 15px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: opacity 0.15s, transform 0.1s;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      margin-top: 1rem;
+    }
+
+    .btn-primary:hover:not(:disabled) {
+      opacity: 0.85;
+    }
+
+    .btn-primary:active:not(:disabled) {
+      transform: scale(0.98);
+    }
+
+    .btn-primary:disabled {
+      opacity: 0.3;
+      cursor: not-allowed;
+    }
+
+    .btn-primary.gold-btn {
+      background: var(--gold);
+      color: var(--brand);
+    }
+
+    /* QR SCAN STEP */
+    .qr-area {
+      border: 2px dashed rgba(92, 0, 24, 0.2);
+      border-radius: 16px;
+      padding: 2rem;
+      text-align: center;
+      margin-bottom: 1.25rem;
+      background: rgba(92, 0, 24, 0.02);
+      cursor: pointer;
+      transition: all 0.2s;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .qr-area:hover {
+      border-color: var(--brand);
+      background: rgba(92, 0, 24, 0.04);
+    }
+
+    .qr-area.scanning {
+      border-color: var(--gold);
+      border-style: solid;
+    }
+
+    .qr-area.verified {
+      border-color: var(--green);
+      border-style: solid;
+      background: rgba(45, 106, 79, 0.04);
+    }
+
+    #qr-video {
+      width: 100%;
+      border-radius: 10px;
+      display: none;
+      max-height: 240px;
+      object-fit: cover;
+    }
+
+    .qr-icon {
+      font-size: 48px;
+      margin-bottom: 10px;
+      display: block;
+    }
+
+    .qr-hint {
+      font-size: 13px;
+      color: var(--ink-muted);
+      line-height: 1.6;
+    }
+
+    .qr-verified-msg {
+      font-size: 14px;
+      font-weight: 600;
+      color: var(--green);
+      margin-top: 8px;
+    }
+
+    /* SCAN LINE ANIMATION */
+    .scan-line {
+      position: absolute;
+      left: 0;
+      right: 0;
+      height: 2px;
+      background: linear-gradient(to right, transparent, var(--gold), transparent);
+      animation: scanMove 1.8s ease-in-out infinite;
+      display: none;
+    }
+
+    @keyframes scanMove {
+      0% {
+        top: 10%;
+      }
+
+      100% {
+        top: 90%;
+      }
+    }
+
+    /* SELFIE STEP */
+    .camera-area {
+      border-radius: 16px;
+      overflow: hidden;
+      background: #000;
+      position: relative;
+      margin-bottom: 1.25rem;
+      aspect-ratio: 4/3;
+    }
+
+    #selfie-video {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      display: block;
+      transform: scaleX(-1);
+    }
+
+    #selfie-canvas {
+      display: none;
+    }
+
+    .camera-overlay {
+      position: absolute;
+      inset: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .face-guide {
+      width: 160px;
+      height: 200px;
+      border-radius: 50%;
+      border: 2px dashed rgba(255, 255, 255, 0.4);
+      pointer-events: none;
+    }
+
+    .preview-img {
+      width: 100%;
+      border-radius: 16px;
+      display: none;
+      margin-bottom: 1.25rem;
+      aspect-ratio: 4/3;
+      object-fit: cover;
+      transform: scaleX(-1);
+    }
+
+    .capture-btn {
+      width: 64px;
+      height: 64px;
+      border-radius: 50%;
+      background: white;
+      border: 4px solid rgba(255, 255, 255, 0.4);
+      cursor: pointer;
+      transition: transform 0.1s;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 24px;
+    }
+
+    .capture-btn:active {
+      transform: scale(0.9);
+    }
+
+    .camera-controls {
+      position: absolute;
+      bottom: 16px;
+      left: 0;
+      right: 0;
+      display: flex;
+      justify-content: center;
+    }
+
+    /* RETAKE LINK */
+    .retake-btn {
+      background: none;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 8px 16px;
+      font-family: 'DM Sans', sans-serif;
+      font-size: 13px;
+      color: var(--ink-muted);
+      cursor: pointer;
+      width: 100%;
+      margin-bottom: 0.5rem;
+      transition: all 0.15s;
+    }
+
+    .retake-btn:hover {
+      background: var(--bg);
+      color: var(--ink);
+    }
+
+    /* ERROR */
+    .error-msg {
+      display: none;
+      background: var(--rose-pale);
+      border: 1px solid rgba(160, 48, 48, 0.2);
+      border-radius: 10px;
+      padding: 11px 15px;
+      font-size: 13px;
+      color: var(--rose);
+      margin-top: 0.75rem;
+    }
+
+    /* SUCCESS SCREEN */
+    #step-success .card {
+      text-align: center;
+      padding: 2.5rem 1.75rem;
+    }
+
+    .success-anim {
+      font-size: 60px;
+      animation: popIn 0.5s cubic-bezier(0.34, 1.56, 0.64, 1);
+      margin-bottom: 12px;
+    }
+
+    @keyframes popIn {
+      from {
+        transform: scale(0);
+        opacity: 0;
+      }
+
+      to {
+        transform: scale(1);
+        opacity: 1;
+      }
+    }
+
+    .success-name {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 1.8rem;
+      font-weight: 600;
+      margin-bottom: 4px;
+    }
+
+    .success-time-big {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 3rem;
+      font-weight: 600;
+      color: var(--brand);
+      line-height: 1;
+      margin: 8px 0;
+    }
+
+    .success-label {
+      font-size: 13px;
+      color: var(--ink-muted);
+      margin-bottom: 20px;
+    }
+
+    .selfie-thumb {
+      width: 80px;
+      height: 80px;
+      border-radius: 50%;
+      object-fit: cover;
+      border: 3px solid var(--gold);
+      margin-bottom: 12px;
+      transform: scaleX(-1);
+      display: none;
+    }
+
+    .duration-badge {
+      display: inline-block;
+      background: var(--gold-pale);
+      border: 1px solid rgba(201, 168, 76, 0.3);
+      color: var(--gold-dark);
+      font-size: 13px;
+      font-weight: 600;
+      padding: 5px 14px;
+      border-radius: 20px;
+      margin-bottom: 1.5rem;
+    }
+
+    /* HISTORY */
+    .history-card {
+      background: var(--warm-white);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      overflow: hidden;
+      box-shadow: var(--shadow);
+    }
+
+    .history-header {
+      padding: 13px 18px;
+      font-size: 11px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: var(--brand);
+      border-bottom: 1px solid var(--border);
+      background: rgba(92, 0, 24, 0.03);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .history-empty {
+      padding: 20px 18px;
+      font-size: 13px;
+      color: var(--ink-faint);
+      text-align: center;
+    }
+
+    .history-row {
+      display: flex;
+      align-items: center;
+      padding: 11px 18px;
+      border-bottom: 1px solid rgba(92, 0, 24, 0.05);
+      gap: 12px;
+    }
+
+    .history-row:last-child {
+      border-bottom: none;
+    }
+
+    .history-thumb {
+      width: 36px;
+      height: 36px;
+      border-radius: 50%;
+      object-fit: cover;
+      flex-shrink: 0;
+      border: 2px solid var(--border);
+      transform: scaleX(-1);
+    }
+
+    .history-thumb-placeholder {
+      width: 36px;
+      height: 36px;
+      border-radius: 50%;
+      background: rgba(92, 0, 24, 0.08);
+      flex-shrink: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 14px;
+    }
+
+    .history-name {
+      font-size: 13px;
+      font-weight: 500;
+    }
+
+    .history-meta {
+      font-size: 11px;
+      color: var(--ink-muted);
+    }
+
+    .hbadge {
+      font-size: 11px;
+      font-weight: 600;
+      padding: 3px 10px;
+      border-radius: 20px;
+      white-space: nowrap;
+      flex-shrink: 0;
+      margin-left: auto;
+    }
+
+    .hbadge.in {
+      background: var(--green-light);
+      color: var(--green);
+    }
+
+    .hbadge.out {
+      background: var(--rose-pale);
+      color: var(--rose);
+    }
+
+    .history-time {
+      font-size: 12px;
+      color: var(--ink-muted);
+      flex-shrink: 0;
+    }
+
+    @media(max-width:500px) {
+      .clock-time {
+        font-size: 3.2rem;
+      }
+
+      main {
+        padding: 1.25rem 1rem 4rem;
+      }
+
+      header {
+        padding: 0 1rem;
+      }
+    }
+  </style>
+</head>
+
+<body>
+
+  <header>
+    <div class="logo">COREBAKE</div>
+    <a href="index.html" class="header-link">← Schedule</a>
+  </header>
+
+  <main>
+
+    <!-- LIVE CLOCK -->
+    <div class="clock-card">
+      <div class="clock-time" id="live-time">00:00:00</div>
+      <div class="clock-date" id="live-date">—</div>
+    </div>
+
+    <!-- STEP INDICATOR -->
+    <div class="step-indicator">
+      <div class="step-dot active" id="sdot-1">1</div>
+      <div class="step-line" id="sline-1"></div>
+      <div class="step-dot" id="sdot-2">2</div>
+      <div class="step-line" id="sline-2"></div>
+      <div class="step-dot" id="sdot-3">3</div>
+      <div class="step-line" id="sline-3"></div>
+      <div class="step-dot" id="sdot-4">✓</div>
+    </div>
+
+    <!-- ── STEP 1: SELECT NAME & TYPE ── -->
+    <div class="step-container active" id="step-1">
+      <div class="card">
+        <div class="card-title">Who are you?</div>
+        <div class="card-sub">Select your name and what you're doing today.</div>
+
+        <div class="type-toggle">
+          <button class="type-btn in selected" id="type-btn-in" onclick="selectType('in')">
+            <span class="t-icon">▶</span>
+            <span class="t-label">Clock In</span>
+            <span class="t-sub">Starting shift</span>
+          </button>
+          <button class="type-btn out" id="type-btn-out" onclick="selectType('out')">
+            <span class="t-icon">◼</span>
+            <span class="t-label">Clock Out</span>
+            <span class="t-sub">Ending shift</span>
+          </button>
+        </div>
+
+        <label>Your name <span class="req">*</span></label>
+        <select id="field-name" onchange="onNameChange()">
+          <option value="">Select your name…</option>
+        </select>
+
+        <div id="status-wrap" style="display:none;">
+          <div class="status-pill free" id="status-pill">
+            <span class="status-dot" id="status-dot"></span>
+            <span id="status-text">Not clocked in today</span>
+          </div>
+        </div>
+
+        <div class="error-msg" id="err-1"></div>
+        <button class="btn-primary" id="btn-next-1" onclick="goToStep2()" disabled>
+          Next — Scan QR →
+        </button>
+      </div>
+    </div>
+
+    <!-- ── STEP 2: QR SCAN ── -->
+    <div class="step-container" id="step-2">
+      <div class="card">
+        <div class="card-title">Scan the QR code</div>
+        <div class="card-sub">Point your camera at the QR code displayed at the office entrance.</div>
+
+        <div class="qr-area" id="qr-area" onclick="startQRScan()">
+          <div class="scan-line" id="scan-line"></div>
+          <video id="qr-video" playsinline></video>
+          <span class="qr-icon" id="qr-icon">⬛</span>
+          <div class="qr-hint" id="qr-hint">Tap to open camera and scan QR code</div>
+          <div class="qr-verified-msg" id="qr-verified-msg" style="display:none;">✓ QR code verified!</div>
+        </div>
+
+        <div class="error-msg" id="err-2"></div>
+        <button class="btn-primary" id="btn-next-2" onclick="goToStep3()" disabled>
+          Next — Take Selfie →
+        </button>
+        <button class="retake-btn" style="margin-top:8px;" onclick="goToStep1()">← Back</button>
+      </div>
+    </div>
+
+    <!-- ── STEP 3: SELFIE ── -->
+    <div class="step-container" id="step-3">
+      <div class="card">
+        <div class="card-title">Take a selfie</div>
+        <div class="card-sub">Make sure your face is clearly visible and well-lit.</div>
+
+        <div class="camera-area" id="camera-area">
+          <video id="selfie-video" playsinline autoplay></video>
+          <canvas id="selfie-canvas"></canvas>
+          <div class="camera-overlay">
+            <div class="face-guide"></div>
+          </div>
+          <div class="camera-controls">
+            <button class="capture-btn" onclick="captureSelfie()" id="capture-btn">📸</button>
+          </div>
+        </div>
+
+        <img id="selfie-preview" class="preview-img" alt="Your selfie">
+
+        <div class="error-msg" id="err-3"></div>
+        <button class="btn-primary gold-btn" id="btn-submit" onclick="submitAttendance()" style="display:none;">
+          Submit Attendance ✓
+        </button>
+        <button class="retake-btn" id="btn-retake" onclick="retakeSelfie()" style="display:none;">↺ Retake
+          photo</button>
+        <button class="retake-btn" onclick="goToStep2()" style="margin-top:4px;">← Back</button>
+      </div>
+    </div>
+
+    <!-- ── STEP 4: SUCCESS ── -->
+    <div class="step-container" id="step-success">
+      <div class="card">
+        <img id="success-thumb" class="selfie-thumb" alt="selfie">
+        <div class="success-anim" id="success-emoji">✓</div>
+        <div class="success-name" id="success-name">—</div>
+        <div class="success-label" id="success-label">Clocked in at</div>
+        <div class="success-time-big" id="success-time">—</div>
+        <div class="duration-badge" id="success-duration" style="display:none;"></div>
+        <button class="btn-primary" onclick="resetAll()" style="margin-top:1rem;">
+          Done
+        </button>
+      </div>
+    </div>
+
+    <!-- TODAY'S LOG -->
+    <div class="history-card" id="history-card">
+      <div class="history-header">
+        <span>Today's log</span>
+        <span id="history-count"
+          style="font-size:11px;color:var(--ink-faint);font-weight:400;text-transform:none;letter-spacing:0;">0
+          entries</span>
+      </div>
+      <div id="history-list">
+        <div class="history-empty">No entries yet today.</div>
+      </div>
+    </div>
+
+  </main>
+
+  <!-- jsQR library for QR scanning -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jsqr/1.4.0/jsQR.min.js"></script>
+
+  <script>
+    // ─── CONFIG ───
+    const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxCg8bAc3G_0mUUPRJScvenHPIyl8f_Hk0vsrVIOELzuxS3ce56o8BawYAsormzXHc9/exec';
+    const SHEET_CSV_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vS6FdWT2Oj6_sXZTM7c4K5mnn-j_fxommGtfVx8gcoi8C3zb2nzPNktqiYTWQhqByGyV8TZSYWhgctb/pub?output=csv';
+
+    // The secret value encoded in the office QR code
+    // Generate your QR at qr-code-generator.com with this exact text
+    const QR_SECRET = 'COREBAKE-ATTENDANCE-2026';
+
+    const PROXIES = [
+      u => `https://api.allorigins.win/raw?url=${encodeURIComponent(u)}`,
+      u => `https://api.codetabs.com/v1/proxy?quest=${encodeURIComponent(u)}`,
+      u => `https://corsproxy.io/?${encodeURIComponent(u)}`,
+    ];
+
+    const TODAY_KEY = () => 'cb_att_' + new Date().toISOString().split('T')[0];
+    const STATE_KEY = n => 'cb_state_' + n + '_' + new Date().toISOString().split('T')[0];
+    const MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+    const DAYS = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+
+    // ─── STATE ───
+    let staffList = [];
+    let selectedType = 'in';
+    let selfieDataURL = null;
+    let qrVerified = false;
+    let qrStream = null;
+    let qrScanInterval = null;
+    let selfieStream = null;
+
+    // ─── LIVE CLOCK ───
+    function tickClock() {
+      const n = new Date();
+      const pad = x => String(x).padStart(2, '0');
+      document.getElementById('live-time').textContent = `${pad(n.getHours())}:${pad(n.getMinutes())}:${pad(n.getSeconds())}`;
+      document.getElementById('live-date').textContent = `${DAYS[n.getDay()]}, ${n.getDate()} ${MONTHS[n.getMonth()]} ${n.getFullYear()}`;
+    }
+    setInterval(tickClock, 1000); tickClock();
+
+    // ─── FETCH STAFF ───
+    async function raceFetch(url) {
+      return new Promise((resolve, reject) => {
+        let done = false, fails = 0;
+        PROXIES.forEach(fn => {
+          fetch(fn(url), { cache: 'no-store' })
+            .then(r => { if (!r.ok) throw new Error(); return r.text(); })
+            .then(t => { if (!done && t.length > 20) { done = true; resolve(t); } })
+            .catch(() => { if (++fails === PROXIES.length && !done) reject(new Error()); });
+        });
+      });
+    }
+    function parseCSV(text) {
+      const lines = text.trim().split(/\r?\n/);
+      const headers = lines[0].split(',').map(c => c.trim().replace(/^"|"$/g, ''));
+      return lines.slice(1).filter(l => l.trim()).map(line => {
+        const cols = []; let cur = '', inQ = false;
+        for (const ch of line) { if (ch === '"') inQ = !inQ; else if (ch === ',' && !inQ) { cols.push(cur.trim()); cur = ''; } else cur += ch; }
+        cols.push(cur.trim());
+        const obj = {};
+        headers.forEach((h, i) => obj[h] = (cols[i] || '').replace(/^"|"$/g, ''));
+        return obj;
+      }).filter(r => (r['Name'] || r['name'] || '').trim());
+    }
+    async function loadStaff() {
+      try {
+        const rows = parseCSV(await raceFetch(SHEET_CSV_URL));
+        staffList = rows.map(r => ({ name: (r['Name'] || r['name'] || '').trim(), role: (r['Role'] || r['role'] || '').trim() }));
+      } catch (e) {
+        staffList = [
+          { name: 'Stella', role: 'Head Baker' }, { name: 'Kevin', role: 'Asst Baker' },
+          { name: 'Kahlaa', role: 'Daily Baker' }, { name: 'Ivonne', role: 'Daily Baker' },
+          { name: 'Finley', role: 'Head Bar' }, { name: 'Regina', role: 'Floor' },
+          { name: 'Mei', role: 'Floor' }, { name: 'Wan', role: 'Barista' }, { name: 'Fikri', role: 'Barista' },
+        ];
+      }
+      const sel = document.getElementById('field-name');
+      sel.innerHTML = '<option value="">Select your name…</option>';
+      staffList.forEach((s, i) => {
+        const o = document.createElement('option'); o.value = i; o.textContent = `${s.name} — ${s.role}`; sel.appendChild(o);
+      });
+    }
+
+    // ─── TYPE TOGGLE ───
+    function selectType(type) {
+      selectedType = type;
+      document.getElementById('type-btn-in').className = 'type-btn in' + (type === 'in' ? ' selected' : '');
+      document.getElementById('type-btn-out').className = 'type-btn out' + (type === 'out' ? ' selected' : '');
+      const idx = document.getElementById('field-name').value;
+      if (idx !== '') updateStatus(idx);
+      validateStep1();
+    }
+
+    // ─── NAME CHANGE ───
+    function onNameChange() {
+      const idx = document.getElementById('field-name').value;
+      const wrap = document.getElementById('status-wrap');
+      if (idx === '') { wrap.style.display = 'none'; validateStep1(); return; }
+      wrap.style.display = 'block';
+      updateStatus(idx);
+      validateStep1();
+    }
+
+    function updateStatus(idx) {
+      const s = staffList[idx];
+      const state = localStorage.getItem(STATE_KEY(s.name)) || 'out';
+      const pill = document.getElementById('status-pill');
+      const dot = document.getElementById('status-dot');
+      const txt = document.getElementById('status-text');
+      const lastIn = getLastTime(s.name, 'in');
+
+      if (state === 'in') {
+        pill.className = 'status-pill clocked-in';
+        dot.className = 'status-dot pulse';
+        txt.textContent = `On shift since ${lastIn}`;
+      } else {
+        pill.className = 'status-pill free';
+        dot.className = 'status-dot';
+        txt.textContent = 'Not clocked in today';
+      }
+    }
+
+    function getLastTime(name, type) {
+      const log = getTodayLog().filter(e => e.name === name && e.type === type);
+      return log.length ? log[log.length - 1].time : '—';
+    }
+
+    function validateStep1() {
+      const idx = document.getElementById('field-name').value;
+      const btn = document.getElementById('btn-next-1');
+      const err = document.getElementById('err-1');
+      err.style.display = 'none';
+
+      if (!idx) { btn.disabled = true; return; }
+
+      const s = staffList[idx];
+      const state = localStorage.getItem(STATE_KEY(s.name)) || 'out';
+
+      if (selectedType === 'in' && state === 'in') {
+        err.textContent = `${s.name} is already clocked in. Please clock out instead.`;
+        err.style.display = 'block'; btn.disabled = true; return;
+      }
+      if (selectedType === 'out' && state === 'out') {
+        err.textContent = `${s.name} hasn't clocked in yet today.`;
+        err.style.display = 'block'; btn.disabled = true; return;
+      }
+      btn.disabled = false;
+    }
+
+    // ─── STEP NAV ───
+    function goToStep1() {
+      stopQRScan(); stopSelfieCamera();
+      showStep('step-1');
+      setStepDots(1);
+    }
+
+    function goToStep2() {
+      stopSelfieCamera();
+      qrVerified = false;
+      selfieDataURL = null;
+      document.getElementById('qr-icon').style.display = 'block';
+      document.getElementById('qr-hint').textContent = 'Tap to open camera and scan QR code';
+      document.getElementById('qr-hint').style.display = 'block';
+      document.getElementById('qr-verified-msg').style.display = 'none';
+      document.getElementById('qr-area').className = 'qr-area';
+      document.getElementById('scan-line').style.display = 'none';
+      document.getElementById('qr-video').style.display = 'none';
+      document.getElementById('btn-next-2').disabled = true;
+      document.getElementById('err-2').style.display = 'none';
+      showStep('step-2');
+      setStepDots(2);
+    }
+
+    function goToStep3() {
+      stopQRScan();
+      showStep('step-3');
+      setStepDots(3);
+      startSelfieCamera();
+      // Reset selfie state
+      document.getElementById('selfie-preview').style.display = 'none';
+      document.getElementById('camera-area').style.display = 'block';
+      document.getElementById('btn-submit').style.display = 'none';
+      document.getElementById('btn-retake').style.display = 'none';
+      document.getElementById('capture-btn').style.display = 'flex';
+      document.getElementById('err-3').style.display = 'none';
+      selfieDataURL = null;
+    }
+
+    function showStep(id) {
+      document.querySelectorAll('.step-container').forEach(s => s.classList.remove('active'));
+      document.getElementById(id).classList.add('active');
+      // Hide/show history when on success
+      document.getElementById('history-card').style.display = id === 'step-success' ? 'none' : 'block';
+    }
+
+    function setStepDots(active) {
+      [1, 2, 3, 4].forEach(i => {
+        const dot = document.getElementById(`sdot-${i}`);
+        const line = document.getElementById(`sline-${i}`);
+        if (i < active) { dot.className = 'step-dot done'; dot.textContent = '✓'; }
+        else if (i === active) { dot.className = 'step-dot active'; dot.textContent = i < 4 ? i : '✓'; }
+        else { dot.className = 'step-dot'; dot.textContent = i < 4 ? i : '✓'; }
+        if (line) line.className = 'step-line' + (i < active ? ' done' : '');
+      });
+    }
+
+    // ─── QR SCANNING ───
+    async function startQRScan() {
+      if (qrVerified) return;
+      const area = document.getElementById('qr-area');
+      const video = document.getElementById('qr-video');
+      const icon = document.getElementById('qr-icon');
+      const hint = document.getElementById('qr-hint');
+      const line = document.getElementById('scan-line');
+      const err = document.getElementById('err-2');
+      err.style.display = 'none';
+
+      try {
+        qrStream = await navigator.mediaDevices.getUserMedia({
+          video: { facingMode: 'environment', width: { ideal: 640 }, height: { ideal: 480 } }
+        });
+        video.srcObject = qrStream;
+        await video.play();
+        video.style.display = 'block';
+        icon.style.display = 'none';
+        hint.style.display = 'none';
+        line.style.display = 'block';
+        area.classList.add('scanning');
+
+        // Scan every 250ms using jsQR
+        const canvas = document.createElement('canvas');
+        const ctx = canvas.getContext('2d');
+        qrScanInterval = setInterval(() => {
+          if (video.readyState !== video.HAVE_ENOUGH_DATA) return;
+          canvas.width = video.videoWidth;
+          canvas.height = video.videoHeight;
+          ctx.drawImage(video, 0, 0);
+          const imgData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+          const code = jsQR(imgData.data, imgData.width, imgData.height);
+          if (code) {
+            if (code.data === QR_SECRET) {
+              qrVerified = true;
+              stopQRScan();
+              area.className = 'qr-area verified';
+              icon.textContent = '✓'; icon.style.display = 'block';
+              document.getElementById('qr-verified-msg').style.display = 'block';
+              hint.style.display = 'none';
+              line.style.display = 'none';
+              document.getElementById('btn-next-2').disabled = false;
+            } else {
+              stopQRScan();
+              err.textContent = 'Invalid QR code. Please scan the Corebake office QR code.';
+              err.style.display = 'block';
+              area.className = 'qr-area';
+              icon.style.display = 'block';
+              hint.textContent = 'Tap to try again';
+              hint.style.display = 'block';
+              video.style.display = 'none';
+              line.style.display = 'none';
+            }
+          }
+        }, 250);
+      } catch (e) {
+        err.textContent = 'Camera access denied. Please allow camera access and try again.';
+        err.style.display = 'block';
+      }
+    }
+
+    function stopQRScan() {
+      if (qrScanInterval) { clearInterval(qrScanInterval); qrScanInterval = null; }
+      if (qrStream) { qrStream.getTracks().forEach(t => t.stop()); qrStream = null; }
+      const video = document.getElementById('qr-video');
+      video.srcObject = null; video.style.display = 'none';
+    }
+
+    // ─── SELFIE CAMERA ───
+    async function startSelfieCamera() {
+      const video = document.getElementById('selfie-video');
+      const err = document.getElementById('err-3');
+      try {
+        selfieStream = await navigator.mediaDevices.getUserMedia({
+          video: { facingMode: 'user', width: { ideal: 640 }, height: { ideal: 480 } }
+        });
+        video.srcObject = selfieStream;
+        await video.play();
+      } catch (e) {
+        err.textContent = 'Camera access denied. Please allow camera and try again.';
+        err.style.display = 'block';
+      }
+    }
+
+    function stopSelfieCamera() {
+      if (selfieStream) { selfieStream.getTracks().forEach(t => t.stop()); selfieStream = null; }
+      const v = document.getElementById('selfie-video'); v.srcObject = null;
+    }
+
+    function captureSelfie() {
+      const video = document.getElementById('selfie-video');
+      const canvas = document.getElementById('selfie-canvas');
+      const preview = document.getElementById('selfie-preview');
+
+      canvas.width = video.videoWidth || 640;
+      canvas.height = video.videoHeight || 480;
+      const ctx = canvas.getContext('2d');
+      // Mirror to match video display
+      ctx.translate(canvas.width, 0);
+      ctx.scale(-1, 1);
+      ctx.drawImage(video, 0, 0);
+
+      selfieDataURL = canvas.toDataURL('image/jpeg', 0.7);
+      preview.src = selfieDataURL;
+
+      // Show preview, hide camera
+      preview.style.display = 'block';
+      document.getElementById('camera-area').style.display = 'none';
+      document.getElementById('btn-submit').style.display = 'flex';
+      document.getElementById('btn-retake').style.display = 'block';
+      document.getElementById('capture-btn').style.display = 'none';
+      stopSelfieCamera();
+    }
+
+    function retakeSelfie() {
+      selfieDataURL = null;
+      document.getElementById('selfie-preview').style.display = 'none';
+      document.getElementById('camera-area').style.display = 'block';
+      document.getElementById('btn-submit').style.display = 'none';
+      document.getElementById('btn-retake').style.display = 'none';
+      document.getElementById('capture-btn').style.display = 'flex';
+      document.getElementById('err-3').style.display = 'none';
+      startSelfieCamera();
+    }
+
+    // ─── SUBMIT ───
+    async function submitAttendance() {
+      const idx = document.getElementById('field-name').value;
+      const s = staffList[idx];
+      const now = new Date();
+      const pad = x => String(x).padStart(2, '0');
+      const timeStr = `${pad(now.getHours())}:${pad(now.getMinutes())}:${pad(now.getSeconds())}`;
+      const dateStr = now.toISOString().split('T')[0];
+
+      const btn = document.getElementById('btn-submit');
+      btn.disabled = true;
+      btn.textContent = 'Submitting…';
+
+      const entry = {
+        formType: 'attendance',
+        timestamp: now.toLocaleString('en-GB'),
+        name: s.name,
+        role: s.role,
+        date: dateStr,
+        time: timeStr,
+        type: selectedType,
+      };
+
+      try {
+        await fetch(APPS_SCRIPT_URL, {
+          method: 'POST', mode: 'no-cors',
+          headers: { 'Content-Type': 'text/plain' },
+          body: JSON.stringify(entry),
+        });
+
+        // Save local state
+        localStorage.setItem(STATE_KEY(s.name), selectedType === 'in' ? 'in' : 'out');
+        const logEntry = { name: s.name, role: s.role, type: selectedType, time: timeStr, photo: selfieDataURL };
+        const log = getTodayLog(); log.push(logEntry);
+        localStorage.setItem(TODAY_KEY(), JSON.stringify(log));
+
+        // Show success
+        showSuccess(s, timeStr);
+        renderHistory();
+
+      } catch (e) {
+        document.getElementById('err-3').textContent = 'Submission failed. Check your internet and try again.';
+        document.getElementById('err-3').style.display = 'block';
+        btn.disabled = false; btn.textContent = 'Submit Attendance ✓';
+      }
+    }
+
+    function showSuccess(s, timeStr) {
+      stopSelfieCamera();
+      setStepDots(4);
+      showStep('step-success');
+
+      const isIn = selectedType === 'in';
+      document.getElementById('success-emoji').textContent = isIn ? '▶' : '◼';
+      document.getElementById('success-name').textContent = s.name;
+      document.getElementById('success-label').textContent = isIn ? 'Clocked in at' : 'Clocked out at';
+      document.getElementById('success-time').textContent = timeStr;
+
+      // Duration badge for clock out
+      const dur = document.getElementById('success-duration');
+      if (!isIn) {
+        const inTime = getLastTime(s.name, 'in');
+        if (inTime !== '—') {
+          dur.textContent = `Total shift: ${calcDuration(inTime, timeStr)}`;
+          dur.style.display = 'inline-block';
+        }
+      } else {
+        dur.style.display = 'none';
+      }
+
+      // Selfie thumb
+      const thumb = document.getElementById('success-thumb');
+      if (selfieDataURL) {
+        thumb.src = selfieDataURL;
+        thumb.style.display = 'block';
+      } else {
+        thumb.style.display = 'none';
+      }
+
+      document.getElementById('history-card').style.display = 'none';
+    }
+
+    // ─── RESET ───
+    function resetAll() {
+      stopQRScan(); stopSelfieCamera();
+      selectedType = 'in';
+      selfieDataURL = null;
+      qrVerified = false;
+
+      document.getElementById('field-name').value = '';
+      document.getElementById('status-wrap').style.display = 'none';
+      document.getElementById('err-1').style.display = 'none';
+      document.getElementById('btn-next-1').disabled = true;
+      document.getElementById('type-btn-in').className = 'type-btn in selected';
+      document.getElementById('type-btn-out').className = 'type-btn out';
+
+      document.getElementById('history-card').style.display = 'block';
+      renderHistory();
+      showStep('step-1');
+      setStepDots(1);
+    }
+
+    // ─── HELPERS ───
+    function calcDuration(s, e) {
+      const [sh, sm, ss] = (s || '0:0:0').split(':').map(Number);
+      const [eh, em, es] = (e || '0:0:0').split(':').map(Number);
+      let d = (eh * 3600 + em * 60 + es) - (sh * 3600 + sm * 60 + ss);
+      if (d < 0) d += 86400;
+      const h = Math.floor(d / 3600), m = Math.floor((d % 3600) / 60);
+      return h > 0 ? `${h}h ${m}m` : `${m}m`;
+    }
+    function getTodayLog() { try { return JSON.parse(localStorage.getItem(TODAY_KEY()) || '[]'); } catch (e) { return []; } }
+
+    // ─── RENDER HISTORY ───
+    function renderHistory() {
+      const log = getTodayLog();
+      const list = document.getElementById('history-list');
+      const cnt = document.getElementById('history-count');
+      cnt.textContent = `${log.length} entr${log.length === 1 ? 'y' : 'ies'}`;
+      if (!log.length) { list.innerHTML = '<div class="history-empty">No entries yet today.</div>'; return; }
+      list.innerHTML = [...log].reverse().map(e => `
+    <div class="history-row">
+      ${e.photo
+          ? `<img class="history-thumb" src="${e.photo}" alt="${e.name}">`
+          : `<div class="history-thumb-placeholder">👤</div>`}
+      <div style="flex:1;min-width:0;">
+        <div class="history-name">${e.name}</div>
+        <div class="history-meta">${e.role}</div>
+      </div>
+      <div class="hbadge ${e.type}">${e.type === 'in' ? 'Clock In' : 'Clock Out'}</div>
+      <div class="history-time">${e.time}</div>
+    </div>`).join('');
+    }
+
+    // ─── INIT ───
+    loadStaff();
+    renderHistory();
+  </script>
+</body>
+
+</html>
