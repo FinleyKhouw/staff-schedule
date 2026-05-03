@@ -1,0 +1,39 @@
+:root {
+  --bg: #f7f3ee;
+  --card: #fffdfa;
+  --ink: #28161b;
+  --brand: #6b142b;
+  --accent: #d8a542;
+  --ok: #1f7a53;
+  --warn: #9f2f2f;
+  --border: #e7ddd2;
+}
+* { box-sizing: border-box; }
+body { margin: 0; font-family: Arial, sans-serif; background: var(--bg); color: var(--ink); }
+.topbar { background: var(--brand); color: #fff; padding: 16px 20px; }
+.topbar h1 { margin: 0; }
+.topbar p { margin: 4px 0 0; opacity: 0.9; }
+.layout { display: grid; grid-template-columns: 1fr 1.4fr; gap: 16px; padding: 16px; }
+.card { background: var(--card); border: 1px solid var(--border); border-radius: 12px; padding: 16px; }
+.qr-box { text-align: center; border: 1px dashed var(--border); border-radius: 8px; padding: 12px; margin-bottom: 12px; }
+#qrImage { width: 160px; height: 160px; }
+label { display: block; margin-top: 10px; margin-bottom: 4px; font-size: 14px; }
+input, select, button { width: 100%; padding: 10px; border-radius: 8px; border: 1px solid #cfc3b8; }
+button { cursor: pointer; font-weight: 600; }
+button.primary { background: var(--ok); color: white; border: none; }
+button.danger { background: var(--warn); color: white; border: none; }
+.row { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 10px; }
+.camera-wrap { margin-top: 10px; }
+#camera, #selfiePreview { width: 100%; border-radius: 8px; background: #111; }
+.status { min-height: 22px; margin-top: 10px; font-weight: 600; }
+.metrics { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; margin-bottom: 12px; }
+.metrics div { background: #faf5ee; border: 1px solid var(--border); border-radius: 8px; padding: 8px; text-align: center; }
+.metrics span { display: block; font-size: 24px; font-weight: 700; color: var(--brand); }
+.metrics small { font-size: 12px; color: #644d4d; }
+table { width: 100%; border-collapse: collapse; font-size: 14px; }
+th, td { border: 1px solid var(--border); padding: 8px; text-align: left; }
+th { background: #f8efe5; }
+.badge { padding: 4px 8px; border-radius: 999px; font-size: 12px; font-weight: 700; }
+.badge.ok { background: #d5f1e4; color: #0f6843; }
+.badge.no { background: #f9dcdc; color: #8f2525; }
+@media (max-width: 900px) { .layout { grid-template-columns: 1fr; } }
