@@ -913,8 +913,6 @@
 <main>
 
   <!-- Summary -->
-  <div class="summary-row" id="summary-row"></div>
-
   <!-- Portal Buttons -->
   <div class="portal-buttons">
     <a href="overtime-form.html" class="portal-btn overtime">
@@ -1261,7 +1259,6 @@ function render() {
   if (prevBtn) prevBtn.style.opacity = weekOffset === 0 ? '0.3' : '1';
   if (nextBtn) nextBtn.style.opacity = weekOffset === total-1 ? '0.3' : '1';
 
-  renderSummary(sched);
   renderTable(dates, sched);
   renderMobile(dates, sched);
   renderStaffCards(dates, sched);
