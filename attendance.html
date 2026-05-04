@@ -820,9 +820,11 @@ function goToStep2() {
   showStep('step-2'); setStepDots(2);
 }
 
-function goToStep3() {
+async function goToStep3() {
   stopQRScan();
   showStep('step-3'); setStepDots(3);
+  // Give OS time to release back camera before requesting front camera
+  await new Promise(r => setTimeout(r, 800));
   startSelfieCamera();
   document.getElementById('selfie-preview').style.display='none';
   document.getElementById('camera-area').style.display='block';
@@ -836,7 +838,7 @@ function goToStep3() {
 function showStep(id) {
   document.querySelectorAll('.step-container').forEach(s=>s.classList.remove('active'));
   document.getElementById(id).classList.add('active');
-  document.getElementById('history-card').style.display = id==='step-success' ? 'none' : 'block';
+  const hc=document.getElementById('history-card'); if(hc) hc.style.display = id==='step-success' ? 'none' : 'block';
 }
 
 function setStepDots(active) {
@@ -1126,7 +1128,7 @@ function showSuccess(s, timeStr) {
     if(inTime!=='—'){dur.textContent=`Total shift: ${calcDuration(inTime,timeStr)}`;dur.style.display='inline-block';}
     else dur.style.display='none';
   } else dur.style.display='none';
-  document.getElementById('history-card').style.display='none';
+  const hc2=document.getElementById('history-card'); if(hc2) hc2.style.display='none';
 }
 
 // ─── RESET ───
@@ -1134,13 +1136,12 @@ function resetAll() {
   stopQRScan(); stopSelfieCamera();
   selectedType='in'; selfieDataURL=null; qrVerified=false;
   document.getElementById('err-1').style.display='none';
-  document.getElementById('type-btn-in').className='type-btn in selected';
-  document.getElementById('type-btn-out').className='type-btn out';
   if(currentUser) {
+    autoSetType();
     updateStatusPill(localStorage.getItem(STATE_KEY(currentUser.name))||'out', currentUser.name);
     validateStep1();
   }
-  document.getElementById('history-card').style.display='block';
+  const hc3=document.getElementById('history-card'); if(hc3) hc3.style.display='block';
   showStep('step-1'); setStepDots(1);
 }
 
