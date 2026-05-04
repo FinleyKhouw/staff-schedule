@@ -1,0 +1,345 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Corebake — Staff Login</title>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;500;600&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #F7F3EE; --warm-white: #FDFAF6;
+    --brand: #5c0018; --brand-deep: #3d0010;
+    --gold: #C9A84C; --gold-light: #F5EDD6; --gold-pale: #FBF7ED; --gold-dark: #8B6914;
+    --green: #2D6A4F; --green-light: #D8F3DC;
+    --rose: #A03030; --rose-pale: #F8EAEA;
+    --ink: #1A0A0E; --ink-muted: #6B5560; --ink-faint: #C4AEB6;
+    --border: rgba(92,0,24,0.12);
+    --shadow: 0 2px 8px rgba(92,0,24,0.07), 0 8px 32px rgba(92,0,24,0.04);
+  }
+  * { margin:0; padding:0; box-sizing:border-box; }
+  body {
+    font-family: 'DM Sans', sans-serif;
+    background: var(--brand);
+    min-height: 100vh;
+    display: flex; flex-direction: column;
+    align-items: center; justify-content: center;
+    padding: 2rem 1.25rem;
+  }
+
+  .login-wrap { width: 100%; max-width: 400px; }
+
+  /* WORDMARK */
+  .wordmark {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 3rem; font-weight: 600;
+    letter-spacing: 0.22em; text-transform: uppercase;
+    color: var(--gold); text-align: center;
+    margin-bottom: 6px;
+    animation: fadeDown 0.5s ease;
+  }
+  .tagline {
+    font-size: 11px; color: rgba(201,168,76,0.5);
+    text-transform: uppercase; letter-spacing: 0.12em;
+    text-align: center; margin-bottom: 2.5rem;
+    animation: fadeDown 0.5s ease 0.1s both;
+  }
+  @keyframes fadeDown { from{opacity:0;transform:translateY(-10px);}to{opacity:1;transform:translateY(0);} }
+
+  /* CARD */
+  .card {
+    background: var(--warm-white);
+    border-radius: 24px;
+    padding: 2rem;
+    box-shadow: 0 20px 60px rgba(0,0,0,0.25);
+    animation: cardUp 0.4s ease 0.15s both;
+  }
+  @keyframes cardUp { from{opacity:0;transform:translateY(16px);}to{opacity:1;transform:translateY(0);} }
+
+  .card-title { font-family:'Cormorant Garamond',serif; font-size:1.6rem; font-weight:600; color:var(--ink); margin-bottom:4px; }
+  .card-sub { font-size:13px; color:var(--ink-muted); margin-bottom:1.75rem; line-height:1.6; }
+
+  label { display:block; font-size:11px; font-weight:600; text-transform:uppercase; letter-spacing:0.07em; color:var(--ink-muted); margin-bottom:7px; }
+
+  select, input[type="password"] {
+    width:100%; background:var(--bg); border:1.5px solid var(--border);
+    border-radius:10px; padding:12px 14px;
+    font-family:'DM Sans',sans-serif; font-size:14px; color:var(--ink);
+    appearance:none; -webkit-appearance:none;
+    transition:border-color 0.15s, box-shadow 0.15s;
+    margin-bottom:1.25rem;
+  }
+  select {
+    background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%236B5560' stroke-width='1.5' fill='none' stroke-linecap='round'/%3E%3C/svg%3E");
+    background-repeat:no-repeat; background-position:right 14px center;
+    padding-right:36px; cursor:pointer;
+  }
+  select:focus, input:focus { outline:none; border-color:var(--gold); box-shadow:0 0 0 3px rgba(201,168,76,0.13); background:var(--warm-white); }
+
+  /* PIN input row */
+  .pin-row { display:flex; gap:10px; margin-bottom:1.25rem; }
+  .pin-digit {
+    flex:1; height:56px; border-radius:10px; border:1.5px solid var(--border);
+    background:var(--bg); font-size:1.5rem; font-weight:600; color:var(--ink);
+    text-align:center; font-family:'Cormorant Garamond',serif;
+    transition:border-color 0.15s, box-shadow 0.15s;
+  }
+  .pin-digit:focus { outline:none; border-color:var(--gold); box-shadow:0 0 0 3px rgba(201,168,76,0.13); background:var(--warm-white); }
+  .pin-digit.filled { border-color:var(--brand); background:rgba(92,0,24,0.04); }
+
+  .btn-login {
+    width:100%; background:var(--brand); color:var(--gold);
+    border:none; border-radius:12px; padding:15px;
+    font-family:'DM Sans',sans-serif; font-size:15px; font-weight:600;
+    cursor:pointer; transition:opacity 0.15s, transform 0.1s;
+    display:flex; align-items:center; justify-content:center; gap:8px;
+  }
+  .btn-login:hover:not(:disabled) { opacity:0.85; }
+  .btn-login:active:not(:disabled) { transform:scale(0.98); }
+  .btn-login:disabled { opacity:0.35; cursor:not-allowed; }
+
+  .error-msg { display:none; background:var(--rose-pale); border:1px solid rgba(160,48,48,0.2); border-radius:10px; padding:11px 15px; font-size:13px; color:var(--rose); margin-top:1rem; }
+
+  .divider { display:flex; align-items:center; gap:12px; margin:1.5rem 0; }
+  .divider-line { flex:1; height:1px; background:var(--border); }
+  .divider-text { font-size:11px; color:var(--ink-faint); text-transform:uppercase; letter-spacing:0.06em; }
+
+  .session-note { font-size:12px; color:var(--ink-faint); text-align:center; margin-top:1.25rem; line-height:1.6; }
+  .session-note strong { color:var(--ink-muted); }
+
+  /* Already logged in state */
+  .already-in {
+    background:var(--green-light); border:1px solid rgba(45,106,79,0.2);
+    border-radius:12px; padding:14px 16px; margin-bottom:1.25rem;
+    font-size:13px; color:var(--green); display:none;
+  }
+
+  .spinner { width:16px; height:16px; border:2px solid rgba(201,168,76,0.3); border-top-color:var(--gold); border-radius:50%; animation:spin 0.7s linear infinite; display:none; }
+  @keyframes spin { to{transform:rotate(360deg);} }
+</style>
+</head>
+<body>
+
+<div class="login-wrap">
+  <div class="wordmark">Corebake</div>
+  <div class="tagline">Staff Portal</div>
+
+  <div class="card">
+    <div class="already-in" id="already-in"></div>
+
+    <div class="card-title">Sign in</div>
+    <div class="card-sub">Select your name and enter your 4-digit PIN to access the staff portal.</div>
+
+    <label>Your name</label>
+    <select id="field-name" onchange="onNameChange()">
+      <option value="">Select your name…</option>
+    </select>
+
+    <label>PIN</label>
+    <div class="pin-row">
+      <input type="password" inputmode="numeric" maxlength="1" class="pin-digit" id="pin-0" oninput="pinInput(0)" onkeydown="pinKeydown(event,0)">
+      <input type="password" inputmode="numeric" maxlength="1" class="pin-digit" id="pin-1" oninput="pinInput(1)" onkeydown="pinKeydown(event,1)">
+      <input type="password" inputmode="numeric" maxlength="1" class="pin-digit" id="pin-2" oninput="pinInput(2)" onkeydown="pinKeydown(event,2)">
+      <input type="password" inputmode="numeric" maxlength="1" class="pin-digit" id="pin-3" oninput="pinInput(3)" onkeydown="pinKeydown(event,3)">
+    </div>
+
+    <button class="btn-login" id="btn-login" onclick="doLogin()" disabled>
+      <div class="spinner" id="spinner"></div>
+      <span id="btn-label">Sign in</span>
+    </button>
+
+    <div class="error-msg" id="error-msg"></div>
+
+    <p class="session-note">You'll stay signed in for <strong>30 days</strong>. No need to sign in again on this device.</p>
+  </div>
+</div>
+
+<script>
+// ─── CONFIG ───
+const SESSION_KEY    = 'cb_session';
+const SESSION_DAYS   = 30;
+const SHEET_CSV_URL  = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vS6FdWT2Oj6_sXZTM7c4K5mnn-j_fxommGtfVx8gcoi8C3zb2nzPNktqiYTWQhqByGyV8TZSYWhgctb/pub?output=csv';
+
+// PINs are fetched live from a separate Google Sheet (Pins tab)
+// Sheet layout: Name | PIN  (row 1 = headers, rows 2+ = staff)
+const PINS_CSV_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vTHMywLmuecSKymO36lIgtj0B0VPzrtvQ0VdUWFIiQs1ZGoFncTqcqRkkyjHibw-MrlWi_tR_TLiWX_/pub?output=csv';
+
+const PROXIES = [
+  u => `https://api.allorigins.win/raw?url=${encodeURIComponent(u)}`,
+  u => `https://api.codetabs.com/v1/proxy?quest=${encodeURIComponent(u)}`,
+  u => `https://corsproxy.io/?${encodeURIComponent(u)}`,
+];
+
+let staffList = [];
+let staffPins  = {}; // populated from Pins sheet
+
+// ─── SESSION CHECK ───
+function getSession() {
+  try {
+    const s = JSON.parse(localStorage.getItem(SESSION_KEY));
+    if (!s || !s.name || !s.expiry) return null;
+    if (Date.now() > s.expiry) { localStorage.removeItem(SESSION_KEY); return null; }
+    return s;
+  } catch(e) { return null; }
+}
+
+function saveSession(name, role) {
+  const expiry = Date.now() + SESSION_DAYS * 24 * 60 * 60 * 1000;
+  localStorage.setItem(SESSION_KEY, JSON.stringify({ name, role, expiry }));
+}
+
+// ─── REDIRECT IF ALREADY LOGGED IN ───
+const existingSession = getSession();
+if (existingSession) {
+  const el = document.getElementById('already-in');
+  el.style.display = 'block';
+  el.innerHTML = `✓ You're signed in as <strong>${existingSession.name}</strong>. <a href="staff-schedule.html" style="color:var(--green);font-weight:600;">Go to schedule →</a>`;
+}
+
+// ─── FETCH STAFF ───
+async function raceFetch(url) {
+  return new Promise((resolve, reject) => {
+    let done=false, fails=0;
+    PROXIES.forEach(fn => {
+      fetch(fn(url), { cache:'no-store' })
+        .then(r=>{ if(!r.ok) throw new Error(); return r.text(); })
+        .then(t=>{ if(!done&&t.length>20){ done=true; resolve(t); } })
+        .catch(()=>{ if(++fails===PROXIES.length&&!done) reject(new Error()); });
+    });
+  });
+}
+
+function parseCSV(text) {
+  const lines = text.trim().split(/\r?\n/);
+  const headers = lines[0].split(',').map(c=>c.trim().replace(/^"|"$/g,''));
+  return lines.slice(1).filter(l=>l.trim()).map(line=>{
+    const cols=[]; let cur='',inQ=false;
+    for(const ch of line){ if(ch==='"') inQ=!inQ; else if(ch===','&&!inQ){cols.push(cur.trim());cur='';}else cur+=ch; }
+    cols.push(cur.trim());
+    const obj={};
+    headers.forEach((h,i)=>obj[h]=(cols[i]||'').replace(/^"|"$/g,''));
+    return obj;
+  }).filter(r=>(r['Name']||r['name']||'').trim());
+}
+
+async function loadStaff() {
+  // Fetch staff list from Schedule sheet (new column-per-person layout)
+  // Row 1 = Name, Row 2 = Role — columns are members
+  try {
+    const text = await raceFetch(SHEET_CSV_URL);
+    const lines = text.trim().split(/\r?\n/);
+    const splitLine = t => { const cols=[]; let cur='',inQ=false; for(const ch of t){ if(ch==='"') inQ=!inQ; else if(ch===','&&!inQ){cols.push(cur.trim());cur='';}else cur+=ch;} cols.push(cur.trim()); return cols.map(c=>c.replace(/^"|"$/g,'')); };
+    const nameRow = splitLine(lines[0]);
+    const roleRow = splitLine(lines[1] || '');
+    // nameRow[0] is the label "Name", nameRow[1..] are member names
+    staffList = [];
+    for (let i = 1; i < nameRow.length; i++) {
+      const name = nameRow[i].trim();
+      const role = (roleRow[i] || '').trim();
+      if (name) staffList.push({ name, role });
+    }
+  } catch(e) {
+    staffList = [
+      {name:'Stella',role:'Head Baker'},{name:'Kevin',role:'Asst Baker'},
+      {name:'Kahlaa',role:'Daily Baker'},{name:'Ivonne',role:'Daily Baker'},
+      {name:'Finley',role:'Head Bar'},{name:'Regina',role:'Floor'},
+      {name:'Mei',role:'Floor'},{name:'Wan',role:'Barista'},{name:'Fikri',role:'Barista'},
+    ];
+  }
+
+  // Fetch PINs from Pins sheet
+  if (PINS_CSV_URL && PINS_CSV_URL !== 'PASTE_PINS_SHEET_URL_HERE') {
+    try {
+      const text = await raceFetch(PINS_CSV_URL);
+      const lines = text.trim().split(/\r?\n/).slice(1); // skip header
+      lines.forEach(line => {
+        const cols = line.split(',').map(c => c.trim().replace(/^"|"$/g,''));
+        if (cols[0] && cols[1]) staffPins[cols[0].trim()] = cols[1].trim();
+      });
+    } catch(e) { console.warn('Could not load PINs from sheet:', e); }
+  }
+
+  const sel = document.getElementById('field-name');
+  sel.innerHTML = '<option value="">Select your name…</option>';
+  staffList.forEach((s,i)=>{
+    const o=document.createElement('option'); o.value=i; o.textContent=`${s.name} — ${s.role}`; sel.appendChild(o);
+  });
+}
+
+// ─── PIN INPUT ───
+function pinInput(idx) {
+  const inp = document.getElementById(`pin-${idx}`);
+  const val = inp.value.replace(/\D/g,'');
+  inp.value = val;
+  inp.classList.toggle('filled', val.length > 0);
+  if (val.length === 1 && idx < 3) {
+    document.getElementById(`pin-${idx+1}`).focus();
+  }
+  validateForm();
+}
+
+function pinKeydown(e, idx) {
+  if (e.key === 'Backspace' && !document.getElementById(`pin-${idx}`).value && idx > 0) {
+    document.getElementById(`pin-${idx-1}`).focus();
+  }
+  if (e.key === 'Enter') doLogin();
+}
+
+function getPin() {
+  return [0,1,2,3].map(i=>document.getElementById(`pin-${i}`).value).join('');
+}
+
+function onNameChange() { validateForm(); }
+
+function validateForm() {
+  const name = document.getElementById('field-name').value;
+  const pin  = getPin();
+  document.getElementById('btn-login').disabled = !(name && pin.length === 4);
+  document.getElementById('error-msg').style.display = 'none';
+}
+
+// ─── LOGIN ───
+function doLogin() {
+  const idx  = document.getElementById('field-name').value;
+  const pin  = getPin();
+  const errEl = document.getElementById('error-msg');
+  errEl.style.display = 'none';
+
+  if (!idx) { errEl.textContent='Please select your name.'; errEl.style.display='block'; return; }
+  if (pin.length !== 4) { errEl.textContent='Please enter your 4-digit PIN.'; errEl.style.display='block'; return; }
+
+  const s = staffList[idx];
+  const correctPin = staffPins[s.name];
+
+  if (!correctPin) {
+    errEl.textContent = `PIN not set for ${s.name}. Please ask the manager to add your PIN to the Pins sheet.`;
+    errEl.style.display='block'; return;
+  }
+
+  if (pin !== correctPin) {
+    errEl.textContent = 'Incorrect PIN. Please try again.';
+    errEl.style.display='block';
+    [0,1,2,3].forEach(i=>{ document.getElementById(`pin-${i}`).value=''; document.getElementById(`pin-${i}`).classList.remove('filled'); });
+    document.getElementById('pin-0').focus();
+    return;
+  }
+
+  // ✓ Correct — save session
+  const btn = document.getElementById('btn-login');
+  const spinner = document.getElementById('spinner');
+  const label   = document.getElementById('btn-label');
+  btn.disabled=true; spinner.style.display='block'; label.textContent='Signing in…';
+
+  saveSession(s.name, s.role);
+
+  // Redirect to schedule after short delay
+  setTimeout(() => {
+    const redirect = new URLSearchParams(window.location.search).get('redirect') || 'staff-schedule.html';
+    window.location.href = redirect;
+  }, 600);
+}
+
+// ─── INIT ───
+loadStaff();
+</script>
+</body>
+</html>

@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
+<<<<<<< HEAD
 
 <head>
   <meta charset="UTF-8">
@@ -928,3 +929,280 @@
 </body>
 
 </html>
+=======
+<head>
+<script>
+(function(){
+  var SESSION_KEY = 'cb_session';
+  var PAGE = window.location.pathname.split('/').pop() || 'index.html';
+  try {
+    var s = JSON.parse(localStorage.getItem(SESSION_KEY));
+    if (!s || !s.name || !s.expiry || Date.now() > s.expiry) {
+      localStorage.removeItem(SESSION_KEY);
+      window.location.replace('login.html?redirect=' + encodeURIComponent(PAGE));
+    }
+  } catch(e) { window.location.replace('login.html?redirect=' + encodeURIComponent(PAGE)); }
+})();
+</script>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Overtime Request — Corebake</title>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;500;600&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root{--bg:#F7F3EE;--warm-white:#FDFAF6;--brand:#5c0018;--gold:#C9A84C;--gold-light:#F5EDD6;--gold-pale:#FBF7ED;--gold-dark:#8B6914;--teal:#2D6E6E;--teal-light:#D4EAEA;--green:#2D6A4F;--green-light:#D8F3DC;--rose:#A03030;--rose-pale:#F8EAEA;--slate:#4A5568;--slate-light:#EDF0F5;--ink:#1A0A0E;--ink-muted:#6B5560;--ink-faint:#C4AEB6;--border:rgba(92,0,24,0.12);--shadow:0 2px 8px rgba(92,0,24,0.07),0 8px 32px rgba(92,0,24,0.04);}
+  *{margin:0;padding:0;box-sizing:border-box;}
+  body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--ink);min-height:100vh;}
+  header{background:var(--brand);color:var(--gold);padding:0 1.25rem;display:flex;align-items:center;justify-content:space-between;height:64px;position:sticky;top:0;z-index:100;border-bottom:1px solid rgba(201,168,76,0.15);}
+  .hback{display:flex;align-items:center;gap:7px;font-size:13px;font-weight:500;color:rgba(201,168,76,0.7);text-decoration:none;transition:color 0.15s;}
+  .hback:hover{color:var(--gold);}
+  .hback svg{width:16px;height:16px;stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;}
+  .hcenter{position:absolute;left:50%;transform:translateX(-50%);font-family:'Cormorant Garamond',serif;font-size:1.4rem;font-weight:600;letter-spacing:0.18em;text-transform:uppercase;color:var(--gold);pointer-events:none;}
+  .pbtn{width:36px;height:36px;border-radius:50%;background:rgba(201,168,76,0.15);border:1.5px solid rgba(201,168,76,0.3);cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:15px;font-weight:700;color:var(--gold);font-family:'Cormorant Garamond',serif;transition:background 0.15s;position:relative;flex-shrink:0;}
+  .pbtn:hover{background:rgba(201,168,76,0.25);}
+  .pdrop{position:absolute;top:calc(100% + 10px);right:0;background:var(--warm-white);border:1px solid var(--border);border-radius:14px;padding:6px;box-shadow:0 8px 32px rgba(0,0,0,0.15);min-width:180px;z-index:200;display:none;flex-direction:column;gap:2px;}
+  .pdrop.open{display:flex;}
+  .pinfo{padding:10px 12px 8px;border-bottom:1px solid var(--border);margin-bottom:4px;}
+  .pname{font-size:14px;font-weight:600;color:var(--ink);}
+  .prole{font-size:11px;color:var(--ink-muted);margin-top:1px;}
+  .ditem{display:flex;align-items:center;gap:9px;padding:9px 12px;border-radius:9px;font-size:13px;color:var(--ink);cursor:pointer;border:none;background:none;font-family:'DM Sans',sans-serif;width:100%;text-align:left;transition:background 0.12s;text-decoration:none;}
+  .ditem:hover{background:rgba(92,0,24,0.05);}
+  .ditem.danger{color:var(--rose);}
+  .ditem.danger:hover{background:var(--rose-pale);}
+  .ditem svg{width:15px;height:15px;stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;flex-shrink:0;}
+  main{max-width:620px;margin:0 auto;padding:2.5rem 1.5rem 6rem;}
+  .eyebrow{font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:0.1em;color:var(--gold);margin-bottom:6px;}
+  .ptitle{font-family:'Cormorant Garamond',serif;font-size:2.1rem;line-height:1.15;margin-bottom:4px;}
+  .psub{font-size:13px;color:var(--ink-muted);margin-bottom:2rem;}
+  .card{background:var(--warm-white);border:1px solid var(--border);border-radius:20px;padding:2rem;box-shadow:var(--shadow);}
+  .slabel{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.1em;color:var(--ink-faint);margin-bottom:1.25rem;padding-bottom:8px;border-bottom:1px solid var(--border);}
+  .fgroup{margin-bottom:1.35rem;}
+  .frow{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:1.35rem;}
+  @media(max-width:500px){.frow{grid-template-columns:1fr;gap:0;margin-bottom:0;}.frow .fgroup{margin-bottom:1.35rem;}}
+  label{display:block;font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:0.07em;color:var(--ink-muted);margin-bottom:7px;}
+  .req{color:var(--rose);margin-left:2px;}
+  input,select,textarea{width:100%;background:var(--bg);border:1.5px solid var(--border);border-radius:10px;padding:11px 14px;font-family:'DM Sans',sans-serif;font-size:14px;color:var(--ink);transition:border-color 0.15s,box-shadow 0.15s;appearance:none;-webkit-appearance:none;}
+  input:focus,select:focus,textarea:focus{outline:none;border-color:var(--gold);box-shadow:0 0 0 3px rgba(201,168,76,0.13);background:var(--warm-white);}
+  input:disabled{opacity:0.75;cursor:default;background:rgba(92,0,24,0.03);font-weight:600;}
+  textarea{resize:vertical;min-height:90px;line-height:1.65;}
+  hr{border:none;border-top:1px solid var(--border);margin:1.75rem 0;}
+  .sbadge{display:flex;align-items:center;gap:10px;padding:12px 14px;border-radius:10px;border:1.5px solid var(--border);background:var(--bg);color:var(--ink-muted);font-size:13px;font-weight:500;min-height:46px;transition:all 0.25s;}
+  .sbadge.am{background:var(--teal-light);border-color:rgba(45,110,110,0.25);color:var(--teal);}
+  .sbadge.pm{background:var(--gold-light);border-color:rgba(196,154,60,0.25);color:var(--gold-dark);}
+  .sbadge.full{background:var(--slate-light);border-color:rgba(74,85,104,0.2);color:var(--slate);}
+  .sbadge.off{background:var(--rose-pale);border-color:rgba(160,48,48,0.15);color:var(--rose);}
+  .sdot{width:8px;height:8px;border-radius:50%;background:currentColor;opacity:0.55;flex-shrink:0;}
+  .otrow{display:flex;align-items:center;gap:12px;}
+  .otrow input{max-width:110px;text-align:center;font-size:1.3rem;font-family:'Cormorant Garamond',serif;}
+  .otunit{font-size:13px;color:var(--ink-muted);}
+  .bsubmit{width:100%;background:var(--brand);color:var(--gold);border:none;border-radius:12px;padding:15px;font-family:'DM Sans',sans-serif;font-size:15px;font-weight:600;cursor:pointer;transition:opacity 0.15s,transform 0.1s;margin-top:1.75rem;display:flex;align-items:center;justify-content:center;gap:8px;}
+  .bsubmit:hover:not(:disabled){opacity:0.85;}
+  .bsubmit:disabled{opacity:0.35;cursor:not-allowed;}
+  .spin{width:16px;height:16px;border:2px solid rgba(201,168,76,0.3);border-top-color:var(--gold);border-radius:50%;animation:sp 0.7s linear infinite;display:none;}
+  @keyframes sp{to{transform:rotate(360deg);}}
+  .errmsg{display:none;background:var(--rose-pale);border:1px solid rgba(160,48,48,0.2);border-radius:10px;padding:11px 15px;font-size:13px;color:var(--rose);margin-top:1rem;}
+  .scr{display:none;flex-direction:column;align-items:center;text-align:center;padding:2.5rem 1.5rem;gap:14px;}
+  .sicon{width:68px;height:68px;background:var(--green-light);border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:30px;animation:pop 0.45s cubic-bezier(0.34,1.56,0.64,1);}
+  @keyframes pop{from{transform:scale(0);opacity:0;}to{transform:scale(1);opacity:1;}}
+  .stitle{font-family:'Cormorant Garamond',serif;font-size:1.7rem;}
+  .ssub{font-size:13px;color:var(--ink-muted);line-height:1.65;max-width:320px;}
+  .ssum{width:100%;background:var(--bg);border:1px solid var(--border);border-radius:12px;padding:1rem 1.25rem;text-align:left;}
+  .sr{display:flex;justify-content:space-between;font-size:13px;padding:6px 0;border-bottom:1px solid var(--border);gap:16px;}
+  .sr:last-child{border-bottom:none;}
+  .sr .k{color:var(--ink-muted);}
+  .sr .v{font-weight:500;text-align:right;}
+  .bnew{background:none;border:1.5px solid var(--border);border-radius:10px;padding:11px 24px;font-family:'DM Sans',sans-serif;font-size:14px;color:var(--ink-muted);cursor:pointer;}
+  .bnew:hover{background:var(--bg);}
+</style>
+</head>
+<body>
+
+<header>
+  <a href="staff-schedule.html" class="hback">
+    <svg viewBox="0 0 24 24"><polyline points="15 18 9 12 15 6"></polyline></svg>Schedule
+  </a>
+  <div class="hcenter">COREBAKE</div>
+  <div style="position:relative;">
+    <button class="pbtn" onclick="toggleP(event)"><span id="pinit">?</span></button>
+    <div class="pdrop" id="pdrop">
+      <div class="pinfo"><div class="pname" id="pname">—</div><div class="prole" id="prole">—</div></div>
+      <a href="staff-schedule.html" class="ditem"><svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>Schedule</a>
+      <a href="attendance.html" class="ditem"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>Attendance</a>
+      <a href="dayoff-form.html" class="ditem"><svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>Day Off</a>
+      <button class="ditem danger" onclick="doLogout()"><svg viewBox="0 0 24 24"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>Sign out</button>
+    </div>
+  </div>
+</header>
+
+<main>
+  <div class="eyebrow">Staff portal</div>
+  <div class="ptitle">Overtime Request</div>
+  <div class="psub">Submit your overtime hours for manager review.</div>
+
+  <div class="card">
+    <div class="scr" id="scr">
+      <div class="sicon">✓</div>
+      <div class="stitle">Submitted!</div>
+      <div class="ssub">Your overtime has been recorded. Your manager will review it shortly.</div>
+      <div class="ssum" id="ssum"></div>
+      <button class="bnew" onclick="resetForm()">Submit another</button>
+    </div>
+
+    <div id="fbody">
+      <div class="slabel">Who are you?</div>
+      <div class="frow">
+        <div class="fgroup"><label>Name</label><input type="text" id="fname" disabled></div>
+        <div class="fgroup"><label>Role</label><input type="text" id="frole" disabled></div>
+      </div>
+
+      <hr>
+      <div class="slabel">When?</div>
+      <div class="fgroup"><label>Date <span class="req">*</span></label><input type="date" id="fdate" onchange="onDateChange()"></div>
+      <div class="fgroup">
+        <label>Scheduled shift</label>
+        <div class="sbadge" id="sbadge"><span class="sdot"></span><span id="stext">Select a date above</span></div>
+      </div>
+
+      <hr>
+      <div class="slabel">Overtime details</div>
+      <div class="fgroup">
+        <label>Overtime hours <span class="req">*</span></label>
+        <div class="otrow">
+          <input type="number" id="fhours" min="0.5" max="16" step="0.5" placeholder="0">
+          <span class="otunit">hours beyond scheduled shift</span>
+        </div>
+      </div>
+      <div class="fgroup"><label>Reason / notes <span class="req">*</span></label><textarea id="freason" placeholder="Describe why overtime was needed…"></textarea></div>
+      <div class="fgroup"><label>Supervisor approval <span class="req">*</span></label><input type="text" id="fsupervisor" placeholder="Name of approving supervisor"></div>
+
+      <div class="errmsg" id="errmsg"></div>
+      <button class="bsubmit" id="bsubmit" onclick="submitForm()">
+        <div class="spin" id="spin"></div>
+        <span id="blabel">Submit overtime request</span>
+      </button>
+    </div>
+  </div>
+</main>
+
+<script>
+const APPS_URL  = 'https://script.google.com/macros/s/AKfycbx9nEXT6OjckqZnMuSj5FM1kJb7Uw3xswxBRQX89hdMMHCoj986BzS87bTqDw1xFOCbPw/exec';
+const SHEET_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vS6FdWT2Oj6_sXZTM7c4K5mnn-j_fxommGtfVx8gcoi8C3zb2nzPNktqiYTWQhqByGyV8TZSYWhgctb/pub?output=csv';
+const PROXIES   = [
+  u=>`https://api.allorigins.win/raw?url=${encodeURIComponent(u)}`,
+  u=>`https://api.codetabs.com/v1/proxy?quest=${encodeURIComponent(u)}`,
+  u=>`https://corsproxy.io/?${encodeURIComponent(u)}`,
+];
+const SINFO = {
+  am:  {label:'Shift 1 (AM)', foh:'08:00–14:00',prod:'05:00–11:00',cls:'am'},
+  pm:  {label:'Shift 2 (PM)', foh:'12:00–18:00',prod:'08:00–14:00',cls:'pm'},
+  full:{label:'Full Day',     foh:'08:00–18:00',prod:'05:00–14:00',cls:'full'},
+  off: {label:'Day Off',      foh:'',           prod:'',           cls:'off'},
+};
+const MMAP={jan:0,feb:1,mar:2,apr:3,may:4,jun:5,jul:6,aug:7,sep:8,oct:9,nov:10,dec:11};
+
+
+function localDateStr(d){const dt=d||new Date();return dt.getFullYear()+'-'+String(dt.getMonth()+1).padStart(2,'0')+'-'+String(dt.getDate()).padStart(2,'0');}
+let sess=null, staffList=[], dateShifts={};
+
+function doLogout(){localStorage.removeItem('cb_session');window.location.replace('login.html');}
+function toggleP(e){e.stopPropagation();document.getElementById('pdrop').classList.toggle('open');}
+document.addEventListener('click',()=>document.getElementById('pdrop').classList.remove('open'));
+
+function splitL(t){const c=[];let cur='',q=false;for(const ch of t){if(ch==='"')q=!q;else if(ch===','&&!q){c.push(cur.trim());cur='';}else cur+=ch;}c.push(cur.trim());return c.map(x=>x.replace(/^"|"$/g,''));}
+function pDate(s){if(!s)return null;s=s.trim();if(/^\d{4}-\d{2}-\d{2}$/.test(s))return new Date(s+'T00:00:00');const m=s.match(/^(\d{1,2})\s+([A-Za-z]+)\s+(\d{4})$/);if(m){const mo=MMAP[m[2].toLowerCase().slice(0,3)];if(mo!==undefined)return new Date(parseInt(m[3]),mo,parseInt(m[1]));}return null;}
+
+async function raceFetch(url){return new Promise((res,rej)=>{let done=false,fails=0;PROXIES.forEach(fn=>{fetch(fn(url),{cache:'no-store'}).then(r=>{if(!r.ok)throw new Error();return r.text();}).then(t=>{if(!done&&t.length>20){done=true;res(t);}}).catch(()=>{if(++fails===PROXIES.length&&!done)rej(new Error());});});});}
+
+async function loadSchedule(){
+  try{
+    const lines=((await raceFetch(SHEET_URL)).trim().split(/\r?\n/).filter(l=>l.trim()));
+    const nr=splitL(lines[0]||''),cr=splitL(lines[2]||'');
+    staffList=[];
+    for(let i=1;i<nr.length;i++){const n=nr[i].trim();if(n)staffList.push({name:n,cat:(cr[i]||'foh').toLowerCase().trim(),ci:i});}
+    for(let ri=3;ri<lines.length;ri++){
+      const row=splitL(lines[ri]),d=pDate((row[0]||'').trim());
+      if(!d)continue;
+      const k=localDateStr(d);
+      dateShifts[k]={};
+      staffList.forEach(s=>{const v=(row[s.ci]||'').toLowerCase().trim();dateShifts[k][s.name]=['am','pm','full','off'].includes(v)?v:null;});
+    }
+    onDateChange();
+  }catch(e){}
+}
+
+function onDateChange(){
+  const date=document.getElementById('fdate').value;
+  const badge=document.getElementById('sbadge'),txt=document.getElementById('stext');
+  badge.className='sbadge';
+  if(!date||!sess){txt.textContent='Select a date above';return;}
+  const day=dateShifts[date];
+  if(!day){txt.textContent='No schedule data for this date';return;}
+  const t=day[sess.name];
+  if(!t){txt.textContent='Not scheduled this day';return;}
+  const info=SINFO[t];badge.classList.add(info.cls);
+  if(t==='off'){txt.textContent='Day Off';return;}
+  const s=staffList.find(x=>x.name===sess.name);
+  const isProd=s&&s.cat==='kitchen';
+  txt.textContent=`${info.label} · ${isProd?'PROD '+info.prod:'FOH '+info.foh}`;
+}
+
+function shiftLabel(){
+  const date=document.getElementById('fdate').value;
+  if(!date||!sess)return'—';
+  const day=dateShifts[date];if(!day)return'—';
+  const t=day[sess.name];if(!t)return'—';
+  if(t==='off')return'Day Off';
+  const info=SINFO[t],s=staffList.find(x=>x.name===sess.name),isProd=s&&s.cat==='kitchen';
+  return`${info.label} (${isProd?info.prod:info.foh})`;
+}
+
+function validate(){
+  if(!document.getElementById('fdate').value)return'Please select the date.';
+  if(!parseFloat(document.getElementById('fhours').value))return'Please enter overtime hours.';
+  if(!document.getElementById('freason').value.trim())return'Please enter a reason.';
+  if(!document.getElementById('fsupervisor').value.trim())return'Please enter the approving supervisor.';
+  return null;
+}
+
+async function submitForm(){
+  const em=document.getElementById('errmsg');em.style.display='none';
+  const err=validate();if(err){em.textContent=err;em.style.display='block';return;}
+  const btn=document.getElementById('bsubmit'),sp=document.getElementById('spin'),lbl=document.getElementById('blabel');
+  btn.disabled=true;sp.style.display='block';lbl.textContent='Submitting…';
+  const p={formType:'overtime',timestamp:new Date().toLocaleString('en-GB'),name:sess.name,role:sess.role,
+    date:document.getElementById('fdate').value,scheduledShift:shiftLabel(),
+    otHours:document.getElementById('fhours').value,
+    reason:document.getElementById('freason').value.trim(),
+    supervisor:document.getElementById('fsupervisor').value.trim()};
+  try{
+    await fetch(APPS_URL,{method:'POST',mode:'no-cors',headers:{'Content-Type':'text/plain'},body:JSON.stringify(p)});
+    document.getElementById('fbody').style.display='none';
+    document.getElementById('scr').style.display='flex';
+    document.getElementById('ssum').innerHTML=`
+      <div class="sr"><span class="k">Name</span><span class="v">${p.name} · ${p.role}</span></div>
+      <div class="sr"><span class="k">Date</span><span class="v">${p.date}</span></div>
+      <div class="sr"><span class="k">Shift</span><span class="v">${p.scheduledShift}</span></div>
+      <div class="sr"><span class="k">OT Hours</span><span class="v">${p.otHours} hrs</span></div>
+      <div class="sr"><span class="k">Reason</span><span class="v">${p.reason}</span></div>
+      <div class="sr"><span class="k">Approved by</span><span class="v">${p.supervisor}</span></div>`;
+  }catch(e){em.textContent='Submission failed. Try again.';em.style.display='block';btn.disabled=false;sp.style.display='none';lbl.textContent='Submit overtime request';}
+}
+
+function resetForm(){
+  document.getElementById('scr').style.display='none';document.getElementById('fbody').style.display='block';
+  ['fhours','freason','fsupervisor'].forEach(id=>document.getElementById(id).value='');
+  document.getElementById('fdate').value=localDateStr();
+  document.getElementById('errmsg').style.display='none';
+  document.getElementById('bsubmit').disabled=false;document.getElementById('spin').style.display='none';
+  document.getElementById('blabel').textContent='Submit overtime request';
+  onDateChange();
+}
+
+document.addEventListener('DOMContentLoaded',()=>{
+  try{const s=JSON.parse(localStorage.getItem('cb_session'));if(s&&s.name){sess=s;document.getElementById('fname').value=s.name;document.getElementById('frole').value=s.role||'';document.getElementById('pinit').textContent=s.name.charAt(0).toUpperCase();document.getElementById('pname').textContent=s.name;document.getElementById('prole').textContent=s.role||'';}}catch(e){}
+  document.getElementById('fdate').value=localDateStr();
+  loadSchedule();
+});
+</script>
+</body>
+</html>
+>>>>>>> local-backup
