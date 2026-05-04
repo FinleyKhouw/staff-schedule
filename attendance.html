@@ -1089,8 +1089,8 @@ function retakeSelfie() {
 }
 
 // ─── GEOFENCE CONFIG ───
-const OFFICE_LAT  = -6.262566031549905;
-const OFFICE_LNG  = 106.63130175434016;
+const OFFICE_LAT  = -6.203050868073594;
+const OFFICE_LNG  = 106.64089980862308;
 const RADIUS_M    = 100; // metres
 
 function getDistanceM(lat1, lng1, lat2, lng2) {
@@ -1144,8 +1144,8 @@ async function submitAttendance() {
   document.getElementById('submit-label').textContent='Submitting…';
   document.getElementById('btn-retake').style.display='none';
 
-  // GEOFENCE TEMPORARILY DISABLED FOR TESTING
-  const geo = { allowed: true, location: 'testing' };
+  // Geofence check
+  const geo = await checkGeofence();
 
   const now=new Date(), pad=x=>String(x).padStart(2,'0');
   const timeStr=`${pad(now.getHours())}:${pad(now.getMinutes())}:${pad(now.getSeconds())}`;
