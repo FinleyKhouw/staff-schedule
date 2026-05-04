@@ -192,7 +192,7 @@ const existingSession = getSession();
 if (existingSession) {
   const el = document.getElementById('already-in');
   el.style.display = 'block';
-  el.innerHTML = `✓ You're signed in as <strong>${existingSession.name}</strong>. <a href="staff-schedule.html" style="color:var(--green);font-weight:600;">Go to schedule →</a>`;
+  el.innerHTML = `✓ You're signed in as <strong>${existingSession.name}</strong>. <a href="index.html" style="color:var(--green);font-weight:600;">Go to schedule →</a>`;
 }
 
 // ─── FETCH STAFF ───
@@ -333,7 +333,7 @@ function doLogin() {
 
   // Redirect to schedule after short delay
   setTimeout(() => {
-    const redirect = new URLSearchParams(window.location.search).get('redirect') || 'staff-schedule.html';
+    const redirect = new URLSearchParams(window.location.search).get('redirect') || 'index.html';
     window.location.href = redirect;
   }, 600);
 }
