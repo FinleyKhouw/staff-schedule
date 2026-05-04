@@ -406,6 +406,8 @@
   }
   .profile-dropdown.open { display: flex; }
   @keyframes dropIn { from{opacity:0;transform:translateY(-6px);}to{opacity:1;transform:translateY(0);} }
+  @keyframes popIn  { from{transform:scale(0);opacity:0;}to{transform:scale(1);opacity:1;} }
+  @keyframes spin   { to { transform: rotate(360deg); } }
 
   .profile-info {
     padding: 10px 12px 8px;
@@ -477,7 +479,7 @@
   </div>  </div>
 
   <!-- STEP INDICATOR -->
-  <div class="step-indicator">
+  <div class="step-indicator" id="step-indicator">
     <div class="step-dot active" id="sdot-1">1</div>
     <div class="step-line" id="sline-1"></div>
     <div class="step-dot" id="sdot-2">2</div>
@@ -564,10 +566,26 @@
 
       <div class="error-msg" id="err-3"></div>
       <button class="btn-primary gold-btn" id="btn-submit" onclick="submitAttendance()" style="display:none;">
-        Submit Attendance ✓
+        <div class="spin" id="submit-spinner" style="display:none;width:16px;height:16px;border:2px solid rgba(92,0,24,0.3);border-top-color:var(--brand);border-radius:50%;animation:spin 0.7s linear infinite;flex-shrink:0;"></div>
+        <span id="submit-label">Submit Attendance ✓</span>
       </button>
       <button class="retake-btn" id="btn-retake" onclick="retakeSelfie()" style="display:none;">↺ Retake photo</button>
       <button class="retake-btn" onclick="goToStep2()" style="margin-top:4px;">← Back</button>
+    </div>
+  </div>
+
+  <!-- ── SHIFT COMPLETE ── -->
+  <div class="step-container" id="step-complete">
+    <div class="card" style="text-align:center;padding:2.5rem 1.75rem;">
+      <div style="font-size:56px;margin-bottom:16px;animation:popIn 0.5s cubic-bezier(0.34,1.56,0.64,1);">🎉</div>
+      <div style="font-family:'Cormorant Garamond',serif;font-size:2rem;font-weight:600;color:var(--brand);margin-bottom:8px;">Shift Complete!</div>
+      <div style="font-size:15px;color:var(--ink-muted);line-height:1.7;margin-bottom:1.75rem;">
+        Thank you for your hard work,<br>
+        <strong style="color:var(--ink);" id="complete-name">—</strong>.<br>
+        See you tomorrow! 👋
+      </div>
+      <div id="complete-summary" style="margin-bottom:1.5rem;"></div>
+      <a href="index.html" style="display:block;background:var(--brand);color:var(--gold);border:none;border-radius:12px;padding:14px;font-family:'DM Sans',sans-serif;font-size:15px;font-weight:600;text-decoration:none;text-align:center;">Back to Schedule</a>
     </div>
   </div>
 
@@ -758,7 +776,17 @@ document.addEventListener('DOMContentLoaded', () => {
 // ─── AUTO-DETERMINE CLOCK IN/OUT FROM STATE ───
 function autoSetType() {
   if (!currentUser) return;
-  const state = localStorage.getItem(STATE_KEY(currentUser.name)) || 'out';
+  const state   = localStorage.getItem(STATE_KEY(currentUser.name)) || 'out';
+  const log     = getTodayLog().filter(e => e.name === currentUser.name);
+  const hasIn   = log.some(e => e.type === 'in');
+  const hasOut  = log.some(e => e.type === 'out');
+
+  // Both clocked in and out — shift complete
+  if (hasIn && hasOut) {
+    showShiftComplete();
+    return;
+  }
+
   selectedType = state === 'in' ? 'out' : 'in';
   const card  = document.getElementById('action-card');
   const icon  = document.getElementById('action-icon');
@@ -775,6 +803,47 @@ function autoSetType() {
     label.textContent = 'Clock Out';
     sub.textContent   = 'Ending your shift';
   }
+}
+
+function showShiftComplete() {
+  const log  = getTodayLog().filter(e => e.name === currentUser.name);
+  const inE  = log.find(e => e.type === 'in');
+  const outE = log.slice().reverse().find(e => e.type === 'out');
+
+  document.getElementById('complete-name').textContent = currentUser.name.split(' ')[0];
+
+  const summary = document.getElementById('complete-summary');
+  if (inE && outE) {
+    const dur = calcDuration(inE.time, outE.time);
+    summary.innerHTML = `
+      <div style="display:inline-flex;flex-direction:column;gap:4px;background:var(--green-light);border:1px solid rgba(45,106,79,0.2);border-radius:14px;padding:16px 28px;">
+        <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.08em;color:var(--green);margin-bottom:4px;">Today's shift</div>
+        <div style="display:flex;gap:20px;align-items:center;">
+          <div style="text-align:center;">
+            <div style="font-family:'Cormorant Garamond',serif;font-size:1.5rem;color:var(--green);">${inE.time.slice(0,5)}</div>
+            <div style="font-size:10px;color:var(--ink-muted);">Clock In</div>
+          </div>
+          <div style="color:var(--ink-faint);font-size:18px;">→</div>
+          <div style="text-align:center;">
+            <div style="font-family:'Cormorant Garamond',serif;font-size:1.5rem;color:var(--green);">${outE.time.slice(0,5)}</div>
+            <div style="font-size:10px;color:var(--ink-muted);">Clock Out</div>
+          </div>
+          <div style="color:var(--ink-faint);font-size:18px;">·</div>
+          <div style="text-align:center;">
+            <div style="font-family:'Cormorant Garamond',serif;font-size:1.5rem;color:var(--green);">${dur}</div>
+            <div style="font-size:10px;color:var(--ink-muted);">Total</div>
+          </div>
+        </div>
+      </div>`;
+  } else {
+    summary.innerHTML = '';
+  }
+
+  // Hide step indicator
+  const si = document.getElementById('step-indicator');
+  if (si) si.style.display = 'none';
+
+  showStep('step-complete');
 }
 
 function selectType(type) { selectedType = type; }
@@ -1070,18 +1139,13 @@ async function submitAttendance() {
   const btn=document.getElementById('btn-submit');
   const errEl=document.getElementById('err-3');
   errEl.style.display='none';
-  btn.disabled=true; btn.textContent='Checking location…';
+  btn.disabled=true;
+  document.getElementById('submit-spinner').style.display='block';
+  document.getElementById('submit-label').textContent='Submitting…';
+  document.getElementById('btn-retake').style.display='none';
 
   // GEOFENCE TEMPORARILY DISABLED FOR TESTING
   const geo = { allowed: true, location: 'testing' };
-  if (!geo.allowed) {
-    errEl.textContent = geo.error;
-    errEl.style.display = 'block';
-    btn.disabled=false; btn.textContent='Submit Attendance ✓';
-    return;
-  }
-
-  btn.textContent='Submitting…';
 
   const now=new Date(), pad=x=>String(x).padStart(2,'0');
   const timeStr=`${pad(now.getHours())}:${pad(now.getMinutes())}:${pad(now.getSeconds())}`;
@@ -1103,7 +1167,10 @@ async function submitAttendance() {
   } catch(e) {
     errEl.textContent='Submission failed. Check your internet and try again.';
     errEl.style.display='block';
-    btn.disabled=false; btn.textContent='Submit Attendance ✓';
+    btn.disabled=false;
+    document.getElementById('submit-spinner').style.display='none';
+    document.getElementById('submit-label').textContent='Submit Attendance ✓';
+    document.getElementById('btn-retake').style.display='block';
   }
 }
 
@@ -1134,14 +1201,28 @@ function showSuccess(s, timeStr) {
 // ─── RESET ───
 function resetAll() {
   stopQRScan(); stopSelfieCamera();
-  selectedType='in'; selfieDataURL=null; qrVerified=false;
-  document.getElementById('err-1').style.display='none';
-  if(currentUser) {
+  selfieDataURL=null; qrVerified=false;
+
+  const wasClockOut = selectedType === 'out';
+  selectedType = 'in';
+
+  if (wasClockOut && currentUser) {
+    // Show shift complete screen
+    const si = document.getElementById('step-indicator');
+    if (si) si.style.display = 'none';
+    showShiftComplete();
+    return;
+  }
+
+  // Clock in done — reset to step 1
+  document.getElementById('err-1').style.display = 'none';
+  const si = document.getElementById('step-indicator');
+  if (si) si.style.display = 'flex';
+  if (currentUser) {
     autoSetType();
     updateStatusPill(localStorage.getItem(STATE_KEY(currentUser.name))||'out', currentUser.name);
     validateStep1();
   }
-  const hc3=document.getElementById('history-card'); if(hc3) hc3.style.display='block';
   showStep('step-1'); setStepDots(1);
 }
 
