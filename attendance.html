@@ -749,7 +749,7 @@ function cbLogout() {
 
 
 // ─── INIT ───
-document.addEventListener('DOMContentLoaded', () => {
+document.addEventListener('DOMContentLoaded', async () => {
   const session = cbGetSession();
   if (!session) { window.location.replace('login.html?redirect=attendance.html'); return; }
 
@@ -765,6 +765,16 @@ document.addEventListener('DOMContentLoaded', () => {
   // Welcome title
   const title = document.getElementById('step1-title');
   if (title) title.textContent = `Welcome back, ${session.name.split(' ')[0]}!`;
+
+  // Show loading state in action card while syncing
+  const actLabel = document.getElementById('action-label');
+  const actSub   = document.getElementById('action-sub');
+  if (actLabel) actLabel.textContent = 'Syncing…';
+  if (actSub)   actSub.textContent   = 'Loading today\'s attendance';
+
+  // Sync from spreadsheet first (so attendance state is consistent across devices)
+  await syncTodayFromSheet();
+
   const state = localStorage.getItem(STATE_KEY(session.name)) || 'out';
   autoSetType();
   updateStatusPill(state, session.name);
@@ -772,6 +782,59 @@ document.addEventListener('DOMContentLoaded', () => {
   loadTodayShift();
   loadMyHistory();
 });
+
+// ─── SYNC TODAY'S ATTENDANCE FROM SPREADSHEET ───
+async function syncTodayFromSheet() {
+  if (!currentUser) return false;
+  try {
+    const text = await raceFetch(ATTENDANCE_CSV);
+    const rows = parseCSV(text);
+    const today = localDateStr();
+
+    const todayEntries = rows.filter(r => {
+      const name = (r['Name'] || r['name'] || '').trim();
+      if (name !== currentUser.name) return false;
+      const dateStr = (r['Date'] || r['date'] || '').trim();
+      if (!dateStr) return false;
+      const d = new Date(dateStr);
+      return !isNaN(d) && localDateStr(d) === today;
+    });
+
+    // Sort by time ascending
+    todayEntries.sort((a, b) => {
+      const ta = (a['Time']||a['time']||'').trim();
+      const tb = (b['Time']||b['time']||'').trim();
+      return ta.localeCompare(tb);
+    });
+
+    // Build local log from sheet entries
+    const log = todayEntries.map(r => {
+      const typeRaw = (r['Type']||r['type']||r['Clock In/Out']||'').toLowerCase();
+      return {
+        name: currentUser.name,
+        role: currentUser.role,
+        type: typeRaw.includes('out') ? 'out' : 'in',
+        time: (r['Time']||r['time']||'').trim(),
+        photo: null,
+      };
+    });
+
+    // Save to localStorage so existing code (autoSetType, showShiftComplete, etc) keeps working
+    localStorage.setItem(TODAY_KEY(), JSON.stringify(log));
+
+    // Determine state from latest entries
+    const hasIn  = log.some(e => e.type === 'in');
+    const hasOut = log.some(e => e.type === 'out');
+    if (hasIn && hasOut)      localStorage.setItem(STATE_KEY(currentUser.name), 'out');
+    else if (hasIn)           localStorage.setItem(STATE_KEY(currentUser.name), 'in');
+    else                      localStorage.setItem(STATE_KEY(currentUser.name), 'out');
+
+    return true;
+  } catch(e) {
+    console.warn('Sync from sheet failed:', e);
+    return false;
+  }
+}
 
 // ─── AUTO-DETERMINE CLOCK IN/OUT FROM STATE ───
 function autoSetType() {
