@@ -604,6 +604,31 @@
     font-weight: 600;
   }
 
+  .portal-btn.stock {
+    background: #2D6E6E;
+    color: #F5EDD6;
+    border: 1px solid rgba(245,237,214,0.2);
+    font-weight: 600;
+  }
+
+  .portal-btn.disabled {
+    opacity: 0.45;
+    cursor: not-allowed;
+    pointer-events: none;
+  }
+  .portal-btn.disabled:active { transform: none; }
+  .portal-btn.disabled::after {
+    content: 'Soon';
+    margin-left: 6px;
+    background: rgba(255,255,255,0.18);
+    padding: 2px 7px;
+    border-radius: 30px;
+    font-size: 10px;
+    font-weight: 500;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+  }
+
   .portal-btn-icon { font-size: 15px; }
 
   /* ─── LEGEND ─── */
@@ -692,8 +717,8 @@
     .summary-row { grid-template-columns: repeat(2, 1fr); }
     .summary-card .value { font-size: 22px; }
 
-    .portal-buttons { gap: 8px; }
-    .portal-btn { flex: 1; justify-content: center; font-size: 12px; padding: 10px 8px; }
+    .portal-buttons { gap: 8px; display: grid; grid-template-columns: 1fr 1fr; }
+    .portal-btn { flex: 1; justify-content: center; font-size: 12px; padding: 12px 8px; }
 
     .view-tabs { width: 100%; }
     .tab-btn { flex: 1; text-align: center; padding: 7px 10px; }
@@ -923,6 +948,9 @@
     </a>
     <a href="attendance.html" class="portal-btn attendance">
       <span class="portal-btn-icon">👆</span> Clock In / Out
+    </a>
+    <a href="javascript:void(0)" class="portal-btn stock disabled" onclick="return false;" title="Coming soon">
+      <span class="portal-btn-icon">📦</span> Stock Opname
     </a>
   </div>
 

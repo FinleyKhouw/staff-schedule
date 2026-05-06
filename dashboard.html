@@ -1,0 +1,1414 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Owner Dashboard — Corebake</title>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;500;600&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg:#F7F3EE; --warm-white:#FDFAF6;
+    --brand:#5c0018; --brand-deep:#3d0010;
+    --gold:#C9A84C; --gold-light:#F5EDD6; --gold-pale:#FBF7ED; --gold-dark:#8B6914;
+    --teal:#2D6E6E; --teal-light:#D4EAEA;
+    --green:#2D6A4F; --green-light:#D8F3DC;
+    --rose:#A03030; --rose-pale:#F8EAEA;
+    --slate:#4A5568; --slate-light:#EDF0F5;
+    --amber:#B8860B; --amber-light:#FBF1D9;
+    --ink:#1A0A0E; --ink-muted:#6B5560; --ink-faint:#C4AEB6;
+    --border:rgba(92,0,24,0.12);
+    --shadow:0 2px 8px rgba(92,0,24,0.07),0 8px 32px rgba(92,0,24,0.04);
+  }
+  *{margin:0;padding:0;box-sizing:border-box;}
+  body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--ink);min-height:100vh;}
+
+  /* HEADER */
+  header{background:var(--brand);color:var(--gold);padding:0 1.5rem;display:flex;align-items:center;justify-content:space-between;height:64px;position:sticky;top:0;z-index:100;border-bottom:1px solid rgba(201,168,76,0.15);}
+  .logo{font-family:'Cormorant Garamond',serif;font-size:1.5rem;font-weight:600;letter-spacing:0.18em;text-transform:uppercase;color:var(--gold);}
+  .header-right{display:flex;align-items:center;gap:14px;}
+  .header-eyebrow{font-size:11px;font-weight:600;letter-spacing:0.1em;text-transform:uppercase;color:rgba(201,168,76,0.55);}
+  .btn-logout{background:none;border:1px solid rgba(201,168,76,0.3);color:rgba(201,168,76,0.7);border-radius:7px;padding:6px 14px;font-family:'DM Sans',sans-serif;font-size:12px;cursor:pointer;transition:all 0.15s;}
+  .btn-logout:hover{background:rgba(201,168,76,0.12);color:var(--gold);}
+
+  /* MAIN */
+  main{max-width:1200px;margin:0 auto;padding:2rem 1.5rem 5rem;}
+  .page-eyebrow{font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:0.1em;color:var(--gold);margin-bottom:6px;}
+  .page-title{font-family:'Cormorant Garamond',serif;font-size:2.5rem;line-height:1.1;margin-bottom:6px;}
+  .page-meta{font-size:13px;color:var(--ink-muted);margin-bottom:2rem;display:flex;align-items:center;gap:14px;flex-wrap:wrap;}
+  .live-pill{display:inline-flex;align-items:center;gap:6px;background:var(--green-light);border:1px solid rgba(45,106,79,0.2);border-radius:30px;padding:4px 12px;font-size:12px;font-weight:600;color:var(--green);}
+  .live-dot{width:7px;height:7px;border-radius:50%;background:var(--green);animation:pulse 1.6s ease-in-out infinite;}
+  @keyframes pulse{0%,100%{opacity:0.4;transform:scale(1);}50%{opacity:1;transform:scale(1.3);}}
+
+  /* SUMMARY STATS */
+  .summary-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:2rem;}
+  .summary-card{background:var(--warm-white);border:1px solid var(--border);border-radius:14px;padding:1.25rem;box-shadow:var(--shadow);}
+  .summary-label{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.08em;color:var(--ink-faint);margin-bottom:8px;}
+  .summary-value{font-family:'Cormorant Garamond',serif;font-size:2.5rem;font-weight:600;line-height:1;margin-bottom:4px;}
+  .summary-value.green{color:var(--green);}
+  .summary-value.amber{color:var(--amber);}
+  .summary-value.rose{color:var(--rose);}
+  .summary-value.brand{color:var(--brand);}
+  .summary-sub{font-size:11px;color:var(--ink-muted);}
+
+  /* SECTION */
+  .section{margin-bottom:2rem;}
+  .section-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:1rem;flex-wrap:wrap;gap:8px;}
+  .section-title{font-family:'Cormorant Garamond',serif;font-size:1.5rem;font-weight:600;color:var(--ink);}
+  .section-count{font-size:12px;color:var(--ink-muted);background:var(--warm-white);border:1px solid var(--border);padding:3px 10px;border-radius:30px;}
+  .btn-refresh{background:rgba(201,168,76,0.12);border:1px solid rgba(201,168,76,0.25);color:var(--gold-dark);border-radius:7px;padding:6px 12px;cursor:pointer;font-family:'DM Sans',sans-serif;font-size:12px;font-weight:600;display:inline-flex;align-items:center;gap:6px;}
+  .btn-refresh:hover{background:rgba(201,168,76,0.22);}
+  .btn-refresh.spinning::before{content:'↻';display:inline-block;animation:spin 0.8s linear infinite;}
+  @keyframes spin{to{transform:rotate(360deg);}}
+
+  /* CARD GRID */
+  .card-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:14px;}
+  .att-card{background:var(--warm-white);border:1px solid var(--border);border-radius:14px;overflow:hidden;box-shadow:var(--shadow);transition:transform 0.15s,box-shadow 0.15s;}
+  .att-card:hover{transform:translateY(-2px);box-shadow:0 8px 32px rgba(92,0,24,0.1);}
+  .att-card-top{padding:14px 16px;display:flex;align-items:center;gap:12px;border-bottom:1px solid var(--border);}
+  .att-avatar{width:44px;height:44px;border-radius:50%;background:var(--brand);color:var(--gold);display:flex;align-items:center;justify-content:center;font-family:'Cormorant Garamond',serif;font-size:1.2rem;font-weight:600;flex-shrink:0;}
+  .att-name{font-size:14px;font-weight:600;color:var(--ink);line-height:1.2;}
+  .att-role{font-size:11px;color:var(--ink-muted);margin-top:2px;}
+  .att-status-pill{font-size:10px;font-weight:700;padding:3px 9px;border-radius:30px;text-transform:uppercase;letter-spacing:0.05em;flex-shrink:0;}
+  .att-status-pill.in{background:var(--green-light);color:var(--green);}
+  .att-status-pill.done{background:var(--slate-light);color:var(--slate);}
+  .att-status-pill.late{background:var(--amber-light);color:var(--amber);}
+  .att-status-pill.absent{background:var(--rose-pale);color:var(--rose);}
+  .att-status-pill.scheduled{background:rgba(92,0,24,0.06);color:var(--brand);}
+  .att-card-body{padding:12px 16px;font-size:13px;display:flex;justify-content:space-between;gap:8px;flex-wrap:wrap;}
+  .att-detail{display:flex;flex-direction:column;gap:2px;}
+  .att-detail-label{font-size:10px;color:var(--ink-faint);text-transform:uppercase;letter-spacing:0.05em;}
+  .att-detail-value{font-family:'Cormorant Garamond',serif;font-size:1.15rem;color:var(--ink);font-weight:500;}
+  .att-detail-value.muted{color:var(--ink-faint);font-style:italic;font-family:'DM Sans',sans-serif;font-size:0.85rem;}
+  .att-shift-badge{font-size:11px;font-weight:500;padding:3px 9px;border-radius:30px;background:var(--gold-pale);color:var(--gold-dark);}
+  .att-shift-badge.am{background:var(--teal-light);color:var(--teal);}
+  .att-shift-badge.pm{background:var(--gold-light);color:var(--gold-dark);}
+  .att-shift-badge.full{background:var(--slate-light);color:var(--slate);}
+
+  /* EMPTY */
+  .empty{text-align:center;padding:2.5rem 1rem;color:var(--ink-faint);font-size:13px;background:var(--warm-white);border:1px dashed var(--border);border-radius:12px;}
+
+  /* LOADING */
+  .loading{text-align:center;padding:2rem;color:var(--ink-muted);font-size:13px;}
+
+  /* LOGIN OVERLAY */
+  .login-overlay{position:fixed;inset:0;background:var(--brand);display:flex;align-items:center;justify-content:center;z-index:1000;padding:1.5rem;}
+  .login-card{background:var(--warm-white);border-radius:24px;padding:2.5rem 2rem;width:100%;max-width:380px;box-shadow:0 20px 60px rgba(0,0,0,0.3);}
+  .login-logo{font-family:'Cormorant Garamond',serif;font-size:2.2rem;font-weight:600;letter-spacing:0.2em;text-transform:uppercase;color:var(--brand);text-align:center;margin-bottom:4px;}
+  .login-tagline{font-size:11px;color:var(--ink-muted);text-transform:uppercase;letter-spacing:0.1em;text-align:center;margin-bottom:1.75rem;}
+  .login-title{font-family:'Cormorant Garamond',serif;font-size:1.3rem;font-weight:600;margin-bottom:4px;}
+  .login-sub{font-size:12px;color:var(--ink-muted);margin-bottom:1.5rem;}
+  .login-field{margin-bottom:1rem;}
+  .login-field label{display:block;font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:0.07em;color:var(--ink-muted);margin-bottom:6px;}
+  .login-field input{width:100%;background:var(--bg);border:1.5px solid var(--border);border-radius:10px;padding:11px 14px;font-family:'DM Sans',sans-serif;font-size:14px;color:var(--ink);}
+  .login-field input:focus{outline:none;border-color:var(--gold);box-shadow:0 0 0 3px rgba(201,168,76,0.13);background:var(--warm-white);}
+  .login-btn{width:100%;background:var(--brand);color:var(--gold);border:none;border-radius:10px;padding:13px;font-family:'DM Sans',sans-serif;font-size:14px;font-weight:600;cursor:pointer;margin-top:0.5rem;}
+  .login-btn:hover{opacity:0.9;}
+  .login-err{display:none;background:var(--rose-pale);border:1px solid rgba(160,48,48,0.2);border-radius:8px;padding:9px 12px;font-size:12px;color:var(--rose);margin-bottom:1rem;}
+
+  /* TABS */
+  .tabs{display:flex;gap:4px;margin-bottom:1.75rem;border-bottom:1px solid var(--border);overflow-x:auto;}
+  .tab-btn{background:none;border:none;padding:12px 18px;font-family:'DM Sans',sans-serif;font-size:14px;font-weight:500;color:var(--ink-muted);cursor:pointer;border-bottom:2px solid transparent;transition:all 0.15s;display:flex;align-items:center;gap:8px;white-space:nowrap;}
+  .tab-btn:hover{color:var(--ink);}
+  .tab-btn.active{color:var(--brand);border-bottom-color:var(--brand);font-weight:600;}
+  .tab-badge{background:var(--rose);color:white;font-size:10px;font-weight:700;padding:2px 7px;border-radius:30px;min-width:18px;text-align:center;}
+  .tab-content{display:none;}
+  .tab-content.active{display:block;}
+
+  /* APPROVAL CARDS */
+  .req-card{background:var(--warm-white);border:1px solid var(--border);border-radius:14px;padding:1.25rem 1.4rem;margin-bottom:14px;box-shadow:var(--shadow);}
+  .req-header{display:flex;align-items:flex-start;justify-content:space-between;gap:12px;margin-bottom:1rem;flex-wrap:wrap;}
+  .req-title-row{display:flex;align-items:center;gap:10px;}
+  .req-avatar{width:38px;height:38px;border-radius:50%;background:var(--brand);color:var(--gold);display:flex;align-items:center;justify-content:center;font-family:'Cormorant Garamond',serif;font-size:1.1rem;font-weight:600;flex-shrink:0;}
+  .req-name{font-size:14px;font-weight:600;color:var(--ink);}
+  .req-meta{font-size:11px;color:var(--ink-muted);margin-top:1px;}
+  .req-type-badge{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.05em;padding:4px 10px;border-radius:30px;}
+  .req-type-badge.dayoff{background:var(--teal-light);color:var(--teal);}
+  .req-type-badge.overtime{background:var(--gold-light);color:var(--gold-dark);}
+  .req-details{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:14px;margin-bottom:1rem;padding:14px;background:var(--bg);border-radius:10px;}
+  .req-detail-label{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.06em;color:var(--ink-faint);margin-bottom:4px;}
+  .req-detail-value{font-size:13px;color:var(--ink);font-weight:500;}
+  .req-actions{display:flex;gap:8px;flex-wrap:wrap;}
+  .req-btn{padding:9px 18px;border:none;border-radius:8px;font-family:'DM Sans',sans-serif;font-size:13px;font-weight:600;cursor:pointer;transition:all 0.15s;display:inline-flex;align-items:center;gap:6px;}
+  .req-btn-approve{background:var(--green);color:white;}
+  .req-btn-approve:hover:not(:disabled){opacity:0.85;}
+  .req-btn-reject{background:white;color:var(--rose);border:1.5px solid rgba(160,48,48,0.3);}
+  .req-btn-reject:hover:not(:disabled){background:var(--rose-pale);}
+  .req-btn:disabled{opacity:0.5;cursor:not-allowed;}
+  .req-status{display:inline-flex;align-items:center;gap:6px;padding:6px 14px;border-radius:30px;font-size:12px;font-weight:600;}
+  .req-status.approved{background:var(--green-light);color:var(--green);}
+  .req-status.rejected{background:var(--rose-pale);color:var(--rose);}
+
+  @media(max-width:640px){
+    .summary-grid{grid-template-columns:repeat(2,1fr);}
+    .page-title{font-size:2rem;}
+    main{padding:1.5rem 1rem 4rem;}
+    header{padding:0 1rem;}
+  }
+
+  /* ========== STOCK TAB ========== */
+
+  /* Hero Alert Banner */
+  .stock-alert-banner{background:linear-gradient(135deg,#A03030 0%,#7A1F1F 100%);color:white;border-radius:18px;padding:1.5rem 1.75rem;margin-bottom:1.5rem;box-shadow:0 8px 24px rgba(160,48,48,0.25);position:relative;overflow:hidden;}
+  .stock-alert-banner::before{content:'';position:absolute;top:-50%;right:-20%;width:300px;height:300px;background:radial-gradient(circle,rgba(255,255,255,0.08) 0%,transparent 70%);}
+  .stock-alert-banner.empty{background:linear-gradient(135deg,#2D6A4F 0%,#1B4332 100%);box-shadow:0 8px 24px rgba(45,106,79,0.2);}
+  .stock-alert-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:1rem;position:relative;z-index:1;flex-wrap:wrap;gap:8px;}
+  .stock-alert-title{font-family:'Cormorant Garamond',serif;font-size:1.6rem;font-weight:600;letter-spacing:-0.01em;}
+  .stock-alert-count{background:rgba(255,255,255,0.15);border:1px solid rgba(255,255,255,0.2);padding:5px 14px;border-radius:30px;font-size:13px;font-weight:600;backdrop-filter:blur(10px);}
+  .stock-alert-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:10px;position:relative;z-index:1;}
+  .stock-alert-card{background:rgba(255,255,255,0.12);border:1px solid rgba(255,255,255,0.18);border-radius:11px;padding:11px 14px;backdrop-filter:blur(8px);}
+  .stock-alert-name{font-size:14px;font-weight:600;margin-bottom:4px;}
+  .stock-alert-numbers{display:flex;align-items:baseline;gap:6px;margin-bottom:6px;}
+  .stock-alert-current{font-family:'Cormorant Garamond',serif;font-size:1.4rem;font-weight:600;}
+  .stock-alert-min{font-size:11px;opacity:0.75;}
+  .stock-alert-vendor{font-size:11px;opacity:0.85;display:flex;align-items:center;gap:5px;}
+  .stock-alert-vlink{color:white;text-decoration:none;background:rgba(255,255,255,0.15);padding:2px 8px;border-radius:30px;font-weight:500;border:1px solid rgba(255,255,255,0.2);}
+  .stock-alert-vlink:hover{background:rgba(255,255,255,0.22);}
+
+  /* Stock summary stats */
+  .stock-stats{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:1.5rem;}
+  @media(max-width:640px){.stock-stats{grid-template-columns:repeat(2,1fr);}}
+
+  /* Section toolbar */
+  .stock-toolbar{display:flex;align-items:center;gap:10px;margin-bottom:1rem;flex-wrap:wrap;}
+  .stock-search{flex:1;min-width:200px;position:relative;}
+  .stock-search input{width:100%;background:var(--warm-white);border:1px solid var(--border);border-radius:9px;padding:9px 12px 9px 32px;font-family:'DM Sans',sans-serif;font-size:13px;color:var(--ink);}
+  .stock-search input:focus{outline:none;border-color:var(--gold);box-shadow:0 0 0 3px rgba(201,168,76,0.13);}
+  .stock-search-icon{position:absolute;left:11px;top:50%;transform:translateY(-50%);color:var(--ink-faint);font-size:13px;pointer-events:none;}
+  .stock-filter{background:var(--warm-white);border:1px solid var(--border);border-radius:9px;padding:8px 12px;font-family:'DM Sans',sans-serif;font-size:13px;color:var(--ink);cursor:pointer;}
+  .stock-filter:focus{outline:none;border-color:var(--gold);}
+
+  /* Stock items grid */
+  .stock-items-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:12px;}
+  .stock-item-card{background:var(--warm-white);border:1px solid var(--border);border-radius:13px;padding:14px 16px;box-shadow:var(--shadow);transition:transform 0.12s,box-shadow 0.12s;display:flex;flex-direction:column;gap:8px;}
+  .stock-item-card:hover{transform:translateY(-1px);box-shadow:0 6px 20px rgba(92,0,24,0.08);}
+  .stock-item-card.low{border-color:rgba(160,48,48,0.3);background:linear-gradient(180deg,var(--rose-pale) 0%,var(--warm-white) 100%);}
+  .stock-item-card.stale{opacity:0.7;border-style:dashed;}
+  .stock-item-head{display:flex;justify-content:space-between;align-items:flex-start;gap:8px;}
+  .stock-item-info{flex:1;min-width:0;}
+  .stock-item-name{font-size:14px;font-weight:600;color:var(--ink);line-height:1.2;}
+  .stock-item-cat{font-size:10px;color:var(--ink-muted);margin-top:3px;display:flex;gap:5px;align-items:center;flex-wrap:wrap;}
+  .stock-cat-pill{background:var(--gold-pale);color:var(--gold-dark);padding:2px 7px;border-radius:30px;font-weight:500;font-size:9px;letter-spacing:0.04em;text-transform:uppercase;}
+  .stock-group-pill{background:var(--teal-light);color:var(--teal);padding:2px 7px;border-radius:30px;font-weight:500;font-size:9px;letter-spacing:0.04em;text-transform:uppercase;}
+  .stock-status-dot{width:10px;height:10px;border-radius:50%;flex-shrink:0;margin-top:5px;}
+  .stock-status-dot.ok{background:var(--green);box-shadow:0 0 0 3px rgba(45,106,79,0.15);}
+  .stock-status-dot.low{background:var(--rose);box-shadow:0 0 0 3px rgba(160,48,48,0.15);animation:pulse-low 1.8s ease-in-out infinite;}
+  .stock-status-dot.stale{background:var(--ink-faint);box-shadow:0 0 0 3px rgba(196,174,182,0.2);}
+  .stock-status-dot.never{background:transparent;border:1.5px solid var(--ink-faint);}
+  @keyframes pulse-low{0%,100%{box-shadow:0 0 0 3px rgba(160,48,48,0.15);}50%{box-shadow:0 0 0 5px rgba(160,48,48,0.25);}}
+
+  .stock-item-count{display:flex;align-items:baseline;gap:8px;padding:10px 0;border-top:1px solid var(--border);border-bottom:1px solid var(--border);margin:2px 0;}
+  .stock-count-value{font-family:'Cormorant Garamond',serif;font-size:2rem;font-weight:600;color:var(--ink);line-height:1;}
+  .stock-count-value.low{color:var(--rose);}
+  .stock-count-unit{font-size:13px;color:var(--ink-muted);}
+  .stock-count-min{margin-left:auto;font-size:11px;color:var(--ink-faint);}
+  .stock-count-min.warn{color:var(--rose);font-weight:600;}
+  .stock-count-empty{font-size:14px;color:var(--ink-faint);font-style:italic;}
+
+  .stock-item-meta{display:flex;justify-content:space-between;align-items:center;font-size:11px;color:var(--ink-muted);gap:8px;flex-wrap:wrap;}
+  .stock-counter{display:inline-flex;align-items:center;gap:5px;}
+  .stock-mini-avatar{width:18px;height:18px;border-radius:50%;background:var(--brand);color:var(--gold);display:inline-flex;align-items:center;justify-content:center;font-size:9px;font-weight:600;font-family:'Cormorant Garamond',serif;flex-shrink:0;}
+  .stock-time{color:var(--ink-faint);}
+  .stock-vendor-link{color:var(--gold-dark);text-decoration:none;font-weight:500;background:var(--gold-pale);padding:3px 9px;border-radius:30px;border:1px solid rgba(201,168,76,0.25);font-size:10px;display:inline-flex;align-items:center;gap:4px;}
+  .stock-vendor-link:hover{background:var(--gold-light);}
+
+  .stock-section-title{font-family:'Cormorant Garamond',serif;font-size:1.4rem;font-weight:600;color:var(--ink);margin:1.5rem 0 0.875rem;display:flex;align-items:center;gap:10px;}
+  .stock-section-title .count-badge{background:var(--bg);border:1px solid var(--border);font-size:11px;font-family:'DM Sans',sans-serif;font-weight:500;color:var(--ink-muted);padding:3px 10px;border-radius:30px;}
+  .stock-section-title.warning{color:var(--rose);}
+
+  .stock-empty{text-align:center;padding:3rem 1rem;color:var(--ink-faint);font-size:13px;background:var(--warm-white);border:1px dashed var(--border);border-radius:14px;}
+</style>
+</head>
+<body>
+
+<!-- LOGIN OVERLAY -->
+<div class="login-overlay" id="login-overlay">
+  <div class="login-card">
+    <div class="login-logo">Corebake</div>
+    <div class="login-tagline">Owner Dashboard</div>
+    <div class="login-title">Sign in</div>
+    <div class="login-sub">Access restricted to authorised personnel.</div>
+    <div class="login-err" id="login-err">Invalid credentials.</div>
+    <div class="login-field">
+      <label>Username</label>
+      <input type="text" id="dash-username" autocomplete="username" autofocus>
+    </div>
+    <div class="login-field">
+      <label>Password</label>
+      <input type="password" id="dash-password" autocomplete="current-password" onkeydown="if(event.key==='Enter') doLogin()">
+    </div>
+    <button class="login-btn" onclick="doLogin()">Sign in</button>
+  </div>
+</div>
+
+<!-- DASHBOARD -->
+<header style="display:none;" id="dash-header">
+  <div class="logo">COREBAKE</div>
+  <div class="header-right">
+    <div class="header-eyebrow">Owner Dashboard</div>
+    <button class="btn-logout" onclick="doLogout()">Sign out</button>
+  </div>
+</header>
+
+<main style="display:none;" id="dash-main">
+  <div class="page-eyebrow">Owner dashboard</div>
+  <div class="page-title">Operations</div>
+
+  <!-- TABS -->
+  <div class="tabs">
+    <button class="tab-btn active" id="tab-btn-attendance" onclick="switchTab('attendance')">📍 Live Attendance</button>
+    <button class="tab-btn" id="tab-btn-inbox" onclick="switchTab('inbox')">
+      📋 Approvals
+      <span class="tab-badge" id="inbox-badge" style="display:none;">0</span>
+    </button>
+    <button class="tab-btn" id="tab-btn-stock" onclick="switchTab('stock')">
+      📦 Stock
+      <span class="tab-badge" id="stock-badge" style="display:none;background:var(--rose);">0</span>
+    </button>
+  </div>
+
+  <!-- TAB: ATTENDANCE -->
+  <div class="tab-content active" id="tab-attendance">
+    <div class="page-meta">
+    <input type="date" id="date-picker" onchange="onDateChange()" style="background:var(--warm-white);border:1px solid var(--border);border-radius:8px;padding:7px 12px;font-family:'DM Sans',sans-serif;font-size:13px;color:var(--ink);cursor:pointer;">
+    <button class="btn-refresh" onclick="goToToday()" id="today-btn">Today</button>
+    <span class="live-pill" id="live-pill"><span class="live-dot"></span> Live · refreshes every 30s</span>
+    <button class="btn-refresh" id="refresh-btn" onclick="loadAll(true)">↻ Refresh</button>
+  </div>
+
+  <!-- SUMMARY STATS -->
+  <div class="summary-grid">
+    <div class="summary-card">
+      <div class="summary-label">Scheduled today</div>
+      <div class="summary-value brand" id="stat-scheduled">—</div>
+      <div class="summary-sub" id="stat-scheduled-sub">staff on shift</div>
+    </div>
+    <div class="summary-card">
+      <div class="summary-label">Currently working</div>
+      <div class="summary-value green" id="stat-working">—</div>
+      <div class="summary-sub" id="stat-working-sub">clocked in now</div>
+    </div>
+    <div class="summary-card">
+      <div class="summary-label">Late</div>
+      <div class="summary-value amber" id="stat-late">—</div>
+      <div class="summary-sub" id="stat-late-sub">past start time</div>
+    </div>
+    <div class="summary-card">
+      <div class="summary-label">No-show</div>
+      <div class="summary-value rose" id="stat-noshow">—</div>
+      <div class="summary-sub" id="stat-noshow-sub">over 30min late</div>
+    </div>
+  </div>
+
+  <!-- LATE / NO-SHOW ALERTS -->
+  <div class="section" id="alerts-section" style="display:none;">
+    <div class="section-header">
+      <div class="section-title">⚠️ Needs Attention</div>
+      <span class="section-count" id="alerts-count">0</span>
+    </div>
+    <div class="card-grid" id="alerts-grid"></div>
+  </div>
+
+  <!-- CURRENTLY WORKING -->
+  <div class="section">
+    <div class="section-header">
+      <div class="section-title">On Shift Now</div>
+      <span class="section-count" id="working-count">0</span>
+    </div>
+    <div id="working-content">
+      <div class="loading">Loading attendance…</div>
+    </div>
+  </div>
+
+  <!-- SHIFT COMPLETE -->
+  <div class="section" id="done-section">
+    <div class="section-header">
+      <div class="section-title">Completed Today</div>
+      <span class="section-count" id="done-count">0</span>
+    </div>
+    <div id="done-content"></div>
+  </div>
+
+  <!-- SCHEDULED BUT NOT YET CLOCKED IN -->
+  <div class="section" id="upcoming-section">
+    <div class="section-header">
+      <div class="section-title">Yet to Arrive</div>
+      <span class="section-count" id="upcoming-count">0</span>
+    </div>
+    <div id="upcoming-content"></div>
+  </div>
+  </div><!-- /tab-attendance -->
+
+  <!-- TAB: APPROVAL INBOX -->
+  <div class="tab-content" id="tab-inbox">
+    <div style="margin-bottom:1.5rem;display:flex;align-items:center;gap:14px;flex-wrap:wrap;">
+      <span style="font-size:13px;color:var(--ink-muted);">Day off and overtime requests pending your decision</span>
+      <button class="btn-refresh" id="inbox-refresh-btn" onclick="loadInbox(true)">↻ Refresh</button>
+    </div>
+
+    <!-- FILTERS -->
+    <div style="background:var(--warm-white);border:1px solid var(--border);border-radius:12px;padding:14px 16px;margin-bottom:1.5rem;display:flex;gap:12px;flex-wrap:wrap;align-items:flex-end;">
+      <div style="flex:1;min-width:160px;">
+        <label style="display:block;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.06em;color:var(--ink-muted);margin-bottom:5px;">Name</label>
+        <select id="filter-name" onchange="renderInbox()" style="width:100%;background:var(--bg);border:1.5px solid var(--border);border-radius:8px;padding:8px 12px;font-family:'DM Sans',sans-serif;font-size:13px;color:var(--ink);cursor:pointer;">
+          <option value="">All staff</option>
+        </select>
+      </div>
+      <div style="flex:1;min-width:140px;">
+        <label style="display:block;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.06em;color:var(--ink-muted);margin-bottom:5px;">From date</label>
+        <input type="date" id="filter-from" onchange="renderInbox()" style="width:100%;background:var(--bg);border:1.5px solid var(--border);border-radius:8px;padding:8px 12px;font-family:'DM Sans',sans-serif;font-size:13px;color:var(--ink);">
+      </div>
+      <div style="flex:1;min-width:140px;">
+        <label style="display:block;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.06em;color:var(--ink-muted);margin-bottom:5px;">To date</label>
+        <input type="date" id="filter-to" onchange="renderInbox()" style="width:100%;background:var(--bg);border:1.5px solid var(--border);border-radius:8px;padding:8px 12px;font-family:'DM Sans',sans-serif;font-size:13px;color:var(--ink);">
+      </div>
+      <button onclick="clearFilters()" style="background:none;border:1.5px solid var(--border);border-radius:8px;padding:8px 14px;font-family:'DM Sans',sans-serif;font-size:12px;color:var(--ink-muted);cursor:pointer;">Clear</button>
+    </div>
+
+    <div class="section">
+      <div class="section-header">
+        <div class="section-title">📋 Pending Day Off</div>
+        <span class="section-count" id="pending-dayoff-count">0</span>
+      </div>
+      <div id="pending-dayoff-list">
+        <div class="loading">Loading…</div>
+      </div>
+    </div>
+
+    <div class="section">
+      <div class="section-header">
+        <div class="section-title">⏰ Pending Overtime</div>
+        <span class="section-count" id="pending-overtime-count">0</span>
+      </div>
+      <div id="pending-overtime-list"></div>
+    </div>
+
+    <div class="section">
+      <div class="section-header">
+        <div class="section-title">Recently Decided</div>
+      </div>
+      <div id="recent-decided-list"><div class="empty">No recent decisions.</div></div>
+    </div>
+  </div><!-- /tab-inbox -->
+
+  <!-- TAB: STOCK -->
+  <div class="tab-content" id="tab-stock">
+    <div style="margin-bottom:1.5rem;display:flex;align-items:center;gap:14px;flex-wrap:wrap;">
+      <span style="font-size:13px;color:var(--ink-muted);">Real-time inventory status across all items</span>
+      <button class="btn-refresh" id="stock-refresh-btn" onclick="loadStock(true)">↻ Refresh</button>
+    </div>
+
+    <!-- LOW STOCK BANNER -->
+    <div id="stock-alert-container"></div>
+
+    <!-- STATS -->
+    <div class="stock-stats">
+      <div class="summary-card">
+        <div class="summary-label">Total items</div>
+        <div class="summary-value brand" id="stock-stat-total">—</div>
+        <div class="summary-sub">in master list</div>
+      </div>
+      <div class="summary-card">
+        <div class="summary-label">Counted today</div>
+        <div class="summary-value green" id="stock-stat-today">—</div>
+        <div class="summary-sub" id="stock-stat-today-sub">items recorded</div>
+      </div>
+      <div class="summary-card">
+        <div class="summary-label">Low stock</div>
+        <div class="summary-value rose" id="stock-stat-low">—</div>
+        <div class="summary-sub">below reorder point</div>
+      </div>
+      <div class="summary-card">
+        <div class="summary-label">Stale (3+ days)</div>
+        <div class="summary-value amber" id="stock-stat-stale">—</div>
+        <div class="summary-sub">need recounting</div>
+      </div>
+    </div>
+
+    <!-- TOOLBAR -->
+    <div class="stock-toolbar">
+      <div class="stock-search">
+        <span class="stock-search-icon">🔍</span>
+        <input type="search" id="stock-search" placeholder="Search items, vendors…" oninput="renderStock()">
+      </div>
+      <select class="stock-filter" id="stock-group-filter" onchange="renderStock()">
+        <option value="">All groups</option>
+      </select>
+      <select class="stock-filter" id="stock-status-filter" onchange="renderStock()">
+        <option value="">All status</option>
+        <option value="low">🔴 Low stock</option>
+        <option value="ok">🟢 OK</option>
+        <option value="stale">⚪ Stale (3+ days)</option>
+        <option value="never">○ Never counted</option>
+      </select>
+    </div>
+
+    <!-- STALE ITEMS WARNING -->
+    <div id="stale-section" style="display:none;">
+      <div class="stock-section-title">
+        ⏱ Need Recounting
+        <span class="count-badge" id="stale-count">0</span>
+      </div>
+      <div class="stock-items-grid" id="stale-grid"></div>
+    </div>
+
+    <!-- ALL ITEMS -->
+    <div class="stock-section-title">
+      All Items
+      <span class="count-badge" id="all-items-count">0</span>
+    </div>
+    <div id="stock-loading" class="loading">Loading stock data…</div>
+    <div class="stock-items-grid" id="stock-items-grid"></div>
+  </div><!-- /tab-stock -->
+</main>
+
+<script>
+// ─── CONFIG ───
+const DASH_USERNAME = 'corebake';
+const DASH_PASSWORD = 'finley2026'; // change this
+const DASH_SESSION_KEY = 'cb_dash_session';
+const DASH_SESSION_HOURS = 12;
+
+const SHEET_CSV_URL  = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vS6FdWT2Oj6_sXZTM7c4K5mnn-j_fxommGtfVx8gcoi8C3zb2nzPNktqiYTWQhqByGyV8TZSYWhgctb/pub?output=csv';
+const ATTENDANCE_CSV = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQmN8x6dWoHiSvXdbXW43EIDLCObhnleyJysfe87QdozcbRNSIrhsratmAXO-KNSOWvOPGdGLyI6LMn/pub?output=csv';
+const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbx9nEXT6OjckqZnMuSj5FM1kJb7Uw3xswxBRQX89hdMMHCoj986BzS87bTqDw1xFOCbPw/exec';
+const STOCK_APPS_URL  = 'https://script.google.com/macros/s/AKfycbw9XojZYbGbj6mj2mXMKmhv0cten5k5CE-A5xDAJV6WFGsZq-a-4CMybNmflj6Z-cz2mA/exec';
+
+// State for approval inbox
+let dayoffRequests   = [];
+let overtimeRequests = [];
+
+// State for stock tab
+let stockMasterItems  = [];
+let stockHistory      = [];
+let stockLatestByItem = {};
+let stockLoaded       = false;
+
+const PROXIES = [
+  u => `https://api.allorigins.win/raw?url=${encodeURIComponent(u)}`,
+  u => `https://api.codetabs.com/v1/proxy?quest=${encodeURIComponent(u)}`,
+  u => `https://corsproxy.io/?${encodeURIComponent(u)}`,
+];
+
+const SHIFT_INFO = {
+  am:   { label:'Shift 1 (AM)',  foh_start:'08:00', prod_start:'05:00', foh_end:'14:00', prod_end:'11:00' },
+  pm:   { label:'Shift 2 (PM)',  foh_start:'12:00', prod_start:'08:00', foh_end:'18:00', prod_end:'14:00' },
+  full: { label:'Full Day',      foh_start:'08:00', prod_start:'05:00', foh_end:'18:00', prod_end:'14:00' },
+};
+
+const DAYS   = ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
+const MONTHS = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+const MMAP   = {jan:0,feb:1,mar:2,apr:3,may:4,jun:5,jul:6,aug:7,sep:8,oct:9,nov:10,dec:11};
+
+let staffRoster = []; // {name, role, cat}
+let todayShifts = {}; // name → 'am'|'pm'|'full'|'off'|null
+let attendanceLog = []; // [{name, role, date, time, type}]
+let refreshTimer = null;
+let selectedDate = null; // YYYY-MM-DD; null means today (live mode)
+
+// ─── HELPERS ───
+function localDateStr(d) {
+  const dt = d || new Date();
+  return dt.getFullYear() + '-' + String(dt.getMonth()+1).padStart(2,'0') + '-' + String(dt.getDate()).padStart(2,'0');
+}
+
+function pDate(s) {
+  if (!s) return null;
+  s = String(s).trim();
+  if (/^\d{4}-\d{2}-\d{2}$/.test(s)) return new Date(s + 'T00:00:00');
+  const m = s.match(/^(\d{1,2})\s+([A-Za-z]+)\s+(\d{4})$/);
+  if (m) {
+    const mo = MMAP[m[2].toLowerCase().slice(0,3)];
+    if (mo !== undefined) return new Date(parseInt(m[3]), mo, parseInt(m[1]));
+  }
+  // Try as-is
+  const dt = new Date(s);
+  return isNaN(dt) ? null : dt;
+}
+
+function splitCSVLine(line) {
+  const cols = []; let cur = '', inQ = false;
+  for (const ch of line) {
+    if (ch === '"') inQ = !inQ;
+    else if (ch === ',' && !inQ) { cols.push(cur.trim()); cur = ''; }
+    else cur += ch;
+  }
+  cols.push(cur.trim());
+  return cols.map(c => c.replace(/^"|"$/g, ''));
+}
+
+function parseTimeStr(s) {
+  // Handles "08:30:00", "8:30", "1899-12-30T08:30:00.000Z", or Date strings
+  if (!s) return null;
+  s = String(s).trim();
+  // Try ISO datetime
+  if (s.includes('T') || s.includes('-') && s.includes(':')) {
+    const dt = new Date(s);
+    if (!isNaN(dt)) {
+      return dt.getUTCHours()*60 + dt.getUTCMinutes();
+    }
+  }
+  // Plain HH:MM[:SS]
+  const m = s.match(/(\d{1,2}):(\d{2})(?::(\d{2}))?/);
+  if (!m) return null;
+  return parseInt(m[1])*60 + parseInt(m[2]);
+}
+
+function timeStrPretty(s) {
+  // Normalize any time format to "HH:MM"
+  const mins = parseTimeStr(s);
+  if (mins == null) return s || '—';
+  return String(Math.floor(mins/60)).padStart(2,'0') + ':' + String(mins%60).padStart(2,'0');
+}
+
+function nowMinutes() {
+  const n = new Date();
+  return n.getHours()*60 + n.getMinutes();
+}
+
+async function raceFetch(url) {
+  return new Promise((resolve, reject) => {
+    let done = false, fails = 0;
+    PROXIES.forEach(fn => {
+      fetch(fn(url + '&t=' + Date.now()), { cache: 'no-store' })
+        .then(r => { if (!r.ok) throw new Error(); return r.text(); })
+        .then(t => { if (!done && t.length > 20) { done = true; resolve(t); } })
+        .catch(() => { if (++fails === PROXIES.length && !done) reject(new Error('All proxies failed')); });
+    });
+  });
+}
+
+// ─── SESSION ───
+function getSession() {
+  try {
+    const s = JSON.parse(localStorage.getItem(DASH_SESSION_KEY));
+    if (!s || !s.expiry) return null;
+    if (Date.now() > s.expiry) { localStorage.removeItem(DASH_SESSION_KEY); return null; }
+    return s;
+  } catch(e) { return null; }
+}
+
+function saveSession() {
+  const expiry = Date.now() + DASH_SESSION_HOURS * 60 * 60 * 1000;
+  localStorage.setItem(DASH_SESSION_KEY, JSON.stringify({ expiry }));
+}
+
+function doLogin() {
+  const u = document.getElementById('dash-username').value.trim();
+  const p = document.getElementById('dash-password').value;
+  const errEl = document.getElementById('login-err');
+  if (u === DASH_USERNAME && p === DASH_PASSWORD) {
+    saveSession();
+    showDashboard();
+  } else {
+    errEl.style.display = 'block';
+    errEl.textContent = 'Invalid username or password.';
+  }
+}
+
+function doLogout() {
+  localStorage.removeItem(DASH_SESSION_KEY);
+  if (refreshTimer) clearInterval(refreshTimer);
+  location.reload();
+}
+
+function showDashboard() {
+  document.getElementById('login-overlay').style.display = 'none';
+  document.getElementById('dash-header').style.display = 'flex';
+  document.getElementById('dash-main').style.display = 'block';
+
+  // Set date picker to today initially
+  const todayStr = localDateStr();
+  document.getElementById('date-picker').value = todayStr;
+  selectedDate = null; // null = live today
+
+  loadAll();
+  loadStock(false); // Pre-load stock so badge updates
+  refreshTimer = setInterval(() => { if (selectedDate === null) loadAll(false); }, 30000);
+}
+
+function getActiveDate() {
+  return selectedDate || localDateStr();
+}
+
+function isViewingToday() {
+  return selectedDate === null;
+}
+
+function onDateChange() {
+  const picked = document.getElementById('date-picker').value;
+  const today  = localDateStr();
+  selectedDate = (picked === today) ? null : picked;
+  updateLivePillVisibility();
+  loadAll(true);
+}
+
+function goToToday() {
+  selectedDate = null;
+  document.getElementById('date-picker').value = localDateStr();
+  updateLivePillVisibility();
+  loadAll(true);
+}
+
+function updateLivePillVisibility() {
+  const pill = document.getElementById('live-pill');
+  if (pill) pill.style.display = isViewingToday() ? 'inline-flex' : 'none';
+}
+
+// ─── LOAD DATA ───
+async function loadAll(showSpinner) {
+  const btn = document.getElementById('refresh-btn');
+  if (showSpinner && btn) btn.classList.add('spinning');
+
+  try {
+    const [scheduleText, attendanceText] = await Promise.all([
+      raceFetch(SHEET_CSV_URL),
+      raceFetch(ATTENDANCE_CSV).catch(() => ''),
+    ]);
+    parseSchedule(scheduleText);
+    parseAttendance(attendanceText);
+    render();
+  } catch(e) {
+    console.error('Load failed:', e);
+  }
+
+  if (btn) btn.classList.remove('spinning');
+}
+
+function parseSchedule(text) {
+  const lines = text.trim().split(/\r?\n/).filter(l => l.trim());
+  const nameRow = splitCSVLine(lines[0] || '');
+  const roleRow = splitCSVLine(lines[1] || '');
+  const catRow  = splitCSVLine(lines[2] || '');
+
+  staffRoster = [];
+  for (let i = 1; i < nameRow.length; i++) {
+    const name = nameRow[i].trim();
+    if (name) staffRoster.push({
+      name,
+      role: (roleRow[i] || '').trim(),
+      cat:  (catRow[i] || 'foh').toLowerCase().trim(),
+      colIndex: i,
+    });
+  }
+
+  const today = getActiveDate();
+  todayShifts = {};
+  for (let ri = 3; ri < lines.length; ri++) {
+    const row = splitCSVLine(lines[ri]);
+    const d = pDate((row[0] || '').trim());
+    if (!d || localDateStr(d) !== today) continue;
+    staffRoster.forEach(s => {
+      const v = (row[s.colIndex] || '').toLowerCase().trim();
+      todayShifts[s.name] = ['am','pm','full','off'].includes(v) ? v : null;
+    });
+    break;
+  }
+}
+
+function parseAttendance(text) {
+  attendanceLog = [];
+  if (!text) return;
+  const lines = text.trim().split(/\r?\n/).filter(l => l.trim());
+  if (lines.length < 2) return;
+  const headers = splitCSVLine(lines[0]).map(h => h.toLowerCase());
+
+  const idx = {
+    timestamp: headers.indexOf('timestamp'),
+    name:      headers.findIndex(h => h.includes('name')),
+    role:      headers.findIndex(h => h.includes('role')),
+    date:      headers.findIndex(h => h.includes('date')),
+    time:      headers.findIndex(h => h.includes('time') && !h.includes('stamp')),
+    type:      headers.findIndex(h => h.includes('type') || h.includes('clock')),
+    location:  headers.findIndex(h => h.includes('location') || h.includes('geo')),
+    hours:     headers.findIndex(h => h.includes('hour')),
+  };
+
+  const today = getActiveDate();
+  for (let i = 1; i < lines.length; i++) {
+    const cols = splitCSVLine(lines[i]);
+    const dateStr = (cols[idx.date] || '').trim();
+    const d = pDate(dateStr);
+    if (!d || localDateStr(d) !== today) continue;
+
+    const typeRaw = (cols[idx.type] || '').toLowerCase();
+    attendanceLog.push({
+      name: (cols[idx.name] || '').trim(),
+      role: (cols[idx.role] || '').trim(),
+      time: (cols[idx.time] || '').trim(),
+      type: typeRaw.includes('out') ? 'out' : 'in',
+      location: idx.location >= 0 ? (cols[idx.location] || '').trim() : '',
+      hours: idx.hours >= 0 ? (cols[idx.hours] || '').trim() : '',
+    });
+  }
+}
+
+// ─── BUSINESS LOGIC ───
+function getStaffStatus(staff) {
+  // returns { state, shiftType, scheduledStart, scheduledEnd, clockIn, clockOut, lateMinutes, hours }
+  const shift = todayShifts[staff.name];
+  if (!shift || shift === 'off') return { state: 'off' };
+
+  const info = SHIFT_INFO[shift];
+  if (!info) return { state: 'off' };
+
+  const isProd = staff.cat === 'kitchen';
+  const startStr = isProd ? info.prod_start : info.foh_start;
+  const endStr   = isProd ? info.prod_end   : info.foh_end;
+  const startMin = parseTimeStr(startStr);
+  const endMin   = parseTimeStr(endStr);
+
+  const myLog = attendanceLog.filter(e => e.name === staff.name);
+  // Sort by time ascending
+  myLog.sort((a,b) => (parseTimeStr(a.time)||0) - (parseTimeStr(b.time)||0));
+  const inEntry  = myLog.find(e => e.type === 'in');
+  // Find the FIRST clock out that comes AFTER the clock in
+  const outEntry = inEntry
+    ? myLog.find(e => e.type === 'out' && (parseTimeStr(e.time)||0) > (parseTimeStr(inEntry.time)||0))
+    : null;
+
+  const now = nowMinutes();
+
+  // Already done
+  if (inEntry && outEntry) {
+    return {
+      state: 'done', shiftType: shift, shiftLabel: info.label,
+      scheduledStart: startStr, scheduledEnd: endStr,
+      clockIn: inEntry.time, clockOut: outEntry.time, hours: calcHours(inEntry.time, outEntry.time),
+    };
+  }
+
+  // Currently in
+  if (inEntry && !outEntry) {
+    const inMins = parseTimeStr(inEntry.time);
+    const lateMinutes = inMins != null ? Math.max(0, inMins - startMin) : 0;
+    return {
+      state: 'working', shiftType: shift, shiftLabel: info.label,
+      scheduledStart: startStr, scheduledEnd: endStr,
+      clockIn: inEntry.time, lateMinutes,
+    };
+  }
+
+  // Not yet in — late or no-show or upcoming
+  // Only applies for today; past dates show "absent", future dates show "scheduled"
+  if (!isViewingToday()) {
+    const today = localDateStr();
+    if (getActiveDate() < today) {
+      // Past date: never clocked in = absent
+      return {
+        state: 'noshow', shiftType: shift, shiftLabel: info.label,
+        scheduledStart: startStr, scheduledEnd: endStr, lateMinutes: 0,
+      };
+    }
+    // Future date: just scheduled
+    return {
+      state: 'scheduled', shiftType: shift, shiftLabel: info.label,
+      scheduledStart: startStr, scheduledEnd: endStr,
+    };
+  }
+
+  const minsLate = now - startMin;
+  if (minsLate > 30) return {
+    state: 'noshow', shiftType: shift, shiftLabel: info.label,
+    scheduledStart: startStr, scheduledEnd: endStr, lateMinutes: minsLate,
+  };
+  if (minsLate > 0) return {
+    state: 'late', shiftType: shift, shiftLabel: info.label,
+    scheduledStart: startStr, scheduledEnd: endStr, lateMinutes: minsLate,
+  };
+  return {
+    state: 'scheduled', shiftType: shift, shiftLabel: info.label,
+    scheduledStart: startStr, scheduledEnd: endStr,
+  };
+}
+
+function calcHours(inTime, outTime) {
+  const i = parseTimeStr(inTime), o = parseTimeStr(outTime);
+  if (i == null || o == null) return '';
+  let diff = o - i;
+  if (diff < 0) diff += 1440;
+  return String(Math.floor(diff/60)).padStart(2,'0') + ':' + String(diff%60).padStart(2,'0');
+}
+
+// ─── RENDER ───
+function render() {
+  const groups = { working:[], done:[], late:[], noshow:[], scheduled:[], off:[] };
+  staffRoster.forEach(s => {
+    const status = getStaffStatus(s);
+    groups[status.state].push({ staff: s, status });
+  });
+
+  // Stats
+  const scheduledCount = groups.working.length + groups.done.length + groups.late.length + groups.noshow.length + groups.scheduled.length;
+  document.getElementById('stat-scheduled').textContent = scheduledCount;
+  document.getElementById('stat-working').textContent   = groups.working.length;
+  // Late stat: includes both not-yet-clocked-in-late AND already-working-but-came-late
+  const lateInWorking = groups.working.filter(g => g.status.lateMinutes > 0).length;
+  document.getElementById('stat-late').textContent      = groups.late.length + lateInWorking;
+  document.getElementById('stat-noshow').textContent    = groups.noshow.length;
+
+  document.getElementById('stat-scheduled-sub').textContent = groups.off.length + ' on day off';
+  document.getElementById('stat-working-sub').textContent   = groups.done.length + ' shifts complete';
+
+  // Alerts (late + noshow)
+  const alerts = [...groups.late, ...groups.noshow];
+  const alertsSection = document.getElementById('alerts-section');
+  if (alerts.length > 0) {
+    alertsSection.style.display = 'block';
+    document.getElementById('alerts-count').textContent = alerts.length;
+    document.getElementById('alerts-grid').innerHTML = alerts.map(renderCard).join('');
+  } else {
+    alertsSection.style.display = 'none';
+  }
+
+  // Working
+  document.getElementById('working-count').textContent = groups.working.length;
+  const workingEl = document.getElementById('working-content');
+  workingEl.innerHTML = groups.working.length
+    ? `<div class="card-grid">${groups.working.map(renderCard).join('')}</div>`
+    : `<div class="empty">No one is currently on shift.</div>`;
+
+  // Done
+  document.getElementById('done-count').textContent = groups.done.length;
+  const doneEl = document.getElementById('done-content');
+  doneEl.innerHTML = groups.done.length
+    ? `<div class="card-grid">${groups.done.map(renderCard).join('')}</div>`
+    : `<div class="empty">No completed shifts yet.</div>`;
+
+  // Upcoming
+  document.getElementById('upcoming-count').textContent = groups.scheduled.length;
+  const upEl = document.getElementById('upcoming-content');
+  upEl.innerHTML = groups.scheduled.length
+    ? `<div class="card-grid">${groups.scheduled.map(renderCard).join('')}</div>`
+    : `<div class="empty">Everyone scheduled has clocked in.</div>`;
+}
+
+function renderCard({ staff, status }) {
+  const initial = staff.name.charAt(0).toUpperCase();
+  let pill = '';
+  let bodyHTML = '';
+
+  switch(status.state) {
+    case 'working':
+      pill = '<span class="att-status-pill in">● On shift</span>';
+      bodyHTML = `
+        <div class="att-detail"><span class="att-detail-label">Clock in</span><span class="att-detail-value">${timeStrPretty(status.clockIn)}</span></div>
+        <div class="att-detail"><span class="att-detail-label">Shift</span><span class="att-shift-badge ${status.shiftType}">${status.shiftLabel}</span></div>
+        ${status.lateMinutes > 5 ? `<div class="att-detail"><span class="att-detail-label">Late by</span><span class="att-detail-value" style="color:var(--amber);">${status.lateMinutes}m</span></div>` : ''}
+      `;
+      break;
+    case 'done':
+      pill = '<span class="att-status-pill done">✓ Done</span>';
+      bodyHTML = `
+        <div class="att-detail"><span class="att-detail-label">In → Out</span><span class="att-detail-value">${timeStrPretty(status.clockIn)} – ${timeStrPretty(status.clockOut)}</span></div>
+        <div class="att-detail"><span class="att-detail-label">Hours</span><span class="att-detail-value" style="color:var(--green);">${status.hours || '—'}</span></div>
+      `;
+      break;
+    case 'late':
+      pill = '<span class="att-status-pill late">⏰ Late</span>';
+      bodyHTML = `
+        <div class="att-detail"><span class="att-detail-label">Should start</span><span class="att-detail-value">${status.scheduledStart}</span></div>
+        <div class="att-detail"><span class="att-detail-label">Late by</span><span class="att-detail-value" style="color:var(--amber);">${status.lateMinutes}m</span></div>
+      `;
+      break;
+    case 'noshow':
+      pill = '<span class="att-status-pill absent">⚠ No-show</span>';
+      bodyHTML = `
+        <div class="att-detail"><span class="att-detail-label">Should start</span><span class="att-detail-value">${status.scheduledStart}</span></div>
+        <div class="att-detail"><span class="att-detail-label">Late by</span><span class="att-detail-value" style="color:var(--rose);">${status.lateMinutes}m</span></div>
+      `;
+      break;
+    case 'scheduled':
+      pill = '<span class="att-status-pill scheduled">○ Upcoming</span>';
+      bodyHTML = `
+        <div class="att-detail"><span class="att-detail-label">Starts at</span><span class="att-detail-value">${status.scheduledStart}</span></div>
+        <div class="att-detail"><span class="att-detail-label">Shift</span><span class="att-shift-badge ${status.shiftType}">${status.shiftLabel}</span></div>
+      `;
+      break;
+  }
+
+  return `
+    <div class="att-card">
+      <div class="att-card-top">
+        <div class="att-avatar">${initial}</div>
+        <div style="flex:1;min-width:0;">
+          <div class="att-name">${staff.name}</div>
+          <div class="att-role">${staff.role}</div>
+        </div>
+        ${pill}
+      </div>
+      <div class="att-card-body">${bodyHTML}</div>
+    </div>`;
+}
+
+// ─── TAB SWITCHING ───
+function switchTab(tabName) {
+  ['attendance','inbox','stock'].forEach(t => {
+    document.getElementById('tab-btn-' + t).classList.toggle('active', t === tabName);
+    document.getElementById('tab-' + t).classList.toggle('active', t === tabName);
+  });
+  if (tabName === 'inbox') loadInbox(false);
+  if (tabName === 'stock') loadStock(false);
+}
+
+// ─── APPROVAL INBOX ───
+async function loadInbox(showSpinner) {
+  const btn = document.getElementById('inbox-refresh-btn');
+  if (showSpinner && btn) btn.classList.add('spinning');
+
+  try {
+    const res = await fetch(APPS_SCRIPT_URL + '?action=getRequests&t=' + Date.now(), { cache: 'no-store' });
+    const data = await res.json();
+    dayoffRequests   = data.dayoff   || [];
+    overtimeRequests = data.overtime || [];
+    renderInbox();
+  } catch(e) {
+    console.error('Inbox load failed:', e);
+    document.getElementById('pending-dayoff-list').innerHTML  = '<div class="empty">Failed to load. Try Refresh.</div>';
+    document.getElementById('pending-overtime-list').innerHTML = '<div class="empty">Failed to load.</div>';
+  }
+
+  if (btn) btn.classList.remove('spinning');
+}
+
+function renderInbox() {
+  // Populate name dropdown (unique names from all requests, sorted)
+  const allNames = [...new Set([...dayoffRequests, ...overtimeRequests].map(r => r.name).filter(Boolean))].sort();
+  const nameSelect = document.getElementById('filter-name');
+  const currentName = nameSelect.value;
+  nameSelect.innerHTML = '<option value="">All staff</option>' +
+    allNames.map(n => `<option value="${escapeHTML(n)}"${n === currentName ? ' selected' : ''}>${escapeHTML(n)}</option>`).join('');
+
+  // Read filters
+  const fName = nameSelect.value;
+  const fFrom = document.getElementById('filter-from').value; // YYYY-MM-DD
+  const fTo   = document.getElementById('filter-to').value;
+
+  // Filter helper
+  const matchesFilters = (r, dateField) => {
+    if (fName && r.name !== fName) return false;
+    const rDate = r[dateField] || r.date || r.fromDate;
+    if (fFrom && rDate && rDate < fFrom) return false;
+    if (fTo   && rDate && rDate > fTo)   return false;
+    return true;
+  };
+
+  const pendingDO = dayoffRequests
+    .filter(r => !r.status || r.status === 'Pending')
+    .filter(r => matchesFilters(r, 'fromDate'));
+  const pendingOT = overtimeRequests
+    .filter(r => !r.status || r.status === 'Pending')
+    .filter(r => matchesFilters(r, 'date'));
+  const decided = [...dayoffRequests, ...overtimeRequests]
+    .filter(r => r.status && r.status !== 'Pending')
+    .filter(r => matchesFilters(r, r.fromDate !== undefined ? 'fromDate' : 'date'))
+    .sort((a,b) => (b.timestamp || '').localeCompare(a.timestamp || ''))
+    .slice(0, 10);
+
+  document.getElementById('pending-dayoff-count').textContent   = pendingDO.length;
+  document.getElementById('pending-overtime-count').textContent = pendingOT.length;
+
+  // Update tab badge — based on TOTAL pending (not filtered) so you don't miss new requests
+  const totalPending = dayoffRequests.filter(r => !r.status || r.status === 'Pending').length
+                     + overtimeRequests.filter(r => !r.status || r.status === 'Pending').length;
+  const badge = document.getElementById('inbox-badge');
+  if (totalPending > 0) {
+    badge.style.display = 'inline-block';
+    badge.textContent = totalPending;
+  } else {
+    badge.style.display = 'none';
+  }
+
+  // Render lists
+  const doEl = document.getElementById('pending-dayoff-list');
+  doEl.innerHTML = pendingDO.length
+    ? pendingDO.map(r => renderDayOffCard(r)).join('')
+    : '<div class="empty">No matching day off requests.</div>';
+
+  const otEl = document.getElementById('pending-overtime-list');
+  otEl.innerHTML = pendingOT.length
+    ? pendingOT.map(r => renderOvertimeCard(r)).join('')
+    : '<div class="empty">No matching overtime requests.</div>';
+
+  const decEl = document.getElementById('recent-decided-list');
+  decEl.innerHTML = decided.length
+    ? decided.map(r => renderDecidedCard(r)).join('')
+    : '<div class="empty">No matching decisions.</div>';
+}
+
+function clearFilters() {
+  document.getElementById('filter-name').value = '';
+  document.getElementById('filter-from').value = '';
+  document.getElementById('filter-to').value   = '';
+  renderInbox();
+}
+
+function renderDayOffCard(r) {
+  const initial = (r.name || '?').charAt(0).toUpperCase();
+  return `
+    <div class="req-card" id="req-card-do-${r.row}">
+      <div class="req-header">
+        <div class="req-title-row">
+          <div class="req-avatar">${initial}</div>
+          <div>
+            <div class="req-name">${escapeHTML(r.name)}</div>
+            <div class="req-meta">${escapeHTML(r.role || '')} · submitted ${escapeHTML(r.timestamp || '')}</div>
+          </div>
+        </div>
+        <span class="req-type-badge dayoff">Day Off</span>
+      </div>
+      <div class="req-details">
+        <div><div class="req-detail-label">Leave Type</div><div class="req-detail-value">${escapeHTML(r.leaveType || '—')}</div></div>
+        <div><div class="req-detail-label">From</div><div class="req-detail-value">${escapeHTML(r.fromDate || '—')}</div></div>
+        <div><div class="req-detail-label">To</div><div class="req-detail-value">${escapeHTML(r.toDate || '—')}</div></div>
+        <div><div class="req-detail-label">Days</div><div class="req-detail-value">${escapeHTML(String(r.days || '—'))}</div></div>
+        ${r.reason && r.reason !== '—' ? `<div style="grid-column:1/-1;"><div class="req-detail-label">Reason</div><div class="req-detail-value">${escapeHTML(r.reason)}</div></div>` : ''}
+        <div style="grid-column:1/-1;"><div class="req-detail-label">Cover</div><div class="req-detail-value">${escapeHTML(r.cover || '—')}</div></div>
+      </div>
+      <div class="req-actions">
+        <button class="req-btn req-btn-approve" onclick="decideRequest('dayoff', ${r.row}, 'Approved', this)">✓ Approve</button>
+        <button class="req-btn req-btn-reject"  onclick="decideRequest('dayoff', ${r.row}, 'Rejected', this)">✗ Reject</button>
+      </div>
+    </div>`;
+}
+
+function renderOvertimeCard(r) {
+  const initial = (r.name || '?').charAt(0).toUpperCase();
+  return `
+    <div class="req-card" id="req-card-ot-${r.row}">
+      <div class="req-header">
+        <div class="req-title-row">
+          <div class="req-avatar">${initial}</div>
+          <div>
+            <div class="req-name">${escapeHTML(r.name)}</div>
+            <div class="req-meta">${escapeHTML(r.role || '')} · submitted ${escapeHTML(r.timestamp || '')}</div>
+          </div>
+        </div>
+        <span class="req-type-badge overtime">Overtime</span>
+      </div>
+      <div class="req-details">
+        <div><div class="req-detail-label">Date</div><div class="req-detail-value">${escapeHTML(r.date || '—')}</div></div>
+        <div><div class="req-detail-label">Scheduled Shift</div><div class="req-detail-value">${escapeHTML(r.scheduledShift || '—')}</div></div>
+        <div><div class="req-detail-label">OT Hours</div><div class="req-detail-value" style="color:var(--gold-dark);font-weight:600;">${escapeHTML(String(r.otHours || '—'))} hrs</div></div>
+        <div><div class="req-detail-label">Approved By</div><div class="req-detail-value">${escapeHTML(r.supervisor || '—')}</div></div>
+        ${r.reason ? `<div style="grid-column:1/-1;"><div class="req-detail-label">Reason</div><div class="req-detail-value">${escapeHTML(r.reason)}</div></div>` : ''}
+      </div>
+      <div class="req-actions">
+        <button class="req-btn req-btn-approve" onclick="decideRequest('overtime', ${r.row}, 'Approved', this)">✓ Approve</button>
+        <button class="req-btn req-btn-reject"  onclick="decideRequest('overtime', ${r.row}, 'Rejected', this)">✗ Reject</button>
+      </div>
+    </div>`;
+}
+
+function renderDecidedCard(r) {
+  const initial = (r.name || '?').charAt(0).toUpperCase();
+  const isDayOff = r.fromDate !== undefined;
+  const summary = isDayOff
+    ? `${escapeHTML(r.leaveType || '')} · ${escapeHTML(r.fromDate || '')} → ${escapeHTML(r.toDate || '')}`
+    : `${escapeHTML(r.date || '')} · ${escapeHTML(String(r.otHours || ''))}h overtime`;
+  return `
+    <div class="req-card" style="opacity:0.85;">
+      <div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap;">
+        <div class="req-avatar" style="width:32px;height:32px;font-size:0.9rem;">${initial}</div>
+        <div style="flex:1;min-width:0;">
+          <div class="req-name" style="font-size:13px;">${escapeHTML(r.name)} <span class="req-type-badge ${isDayOff ? 'dayoff' : 'overtime'}" style="margin-left:6px;">${isDayOff ? 'Day Off' : 'OT'}</span></div>
+          <div class="req-meta">${summary}</div>
+        </div>
+        <span class="req-status ${r.status === 'Approved' ? 'approved' : 'rejected'}">
+          ${r.status === 'Approved' ? '✓ Approved' : '✗ Rejected'}
+        </span>
+      </div>
+    </div>`;
+}
+
+async function decideRequest(type, row, decision, btn) {
+  const card = btn.closest('.req-card');
+  const btns = card.querySelectorAll('.req-btn');
+  btns.forEach(b => b.disabled = true);
+  btn.textContent = decision === 'Approved' ? '⏳ Approving…' : '⏳ Rejecting…';
+
+  try {
+    // Send to Apps Script
+    const params = new URLSearchParams({
+      action: 'decideRequest',
+      type:   type,
+      row:    String(row),
+      status: decision,
+    });
+    await fetch(APPS_SCRIPT_URL + '?' + params.toString(), { method: 'GET', cache: 'no-store' });
+
+    // Optimistic UI: update local state and re-render
+    const list = type === 'dayoff' ? dayoffRequests : overtimeRequests;
+    const req  = list.find(r => r.row === row);
+    if (req) req.status = decision;
+
+    setTimeout(() => loadInbox(false), 800);
+
+  } catch(e) {
+    btns.forEach(b => b.disabled = false);
+    btn.textContent = decision === 'Approved' ? '✓ Approve' : '✗ Reject';
+    alert('Failed: ' + e.message);
+  }
+}
+
+function escapeHTML(s) {
+  if (s == null) return '';
+  return String(s).replace(/[&<>"']/g, c =>
+    ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'})[c]
+  );
+}
+
+// ─── STOCK TAB ───
+async function loadStock(showSpinner) {
+  const btn = document.getElementById('stock-refresh-btn');
+  if (showSpinner && btn) btn.classList.add('spinning');
+
+  try {
+    const [itemsRes, countsRes] = await Promise.all([
+      fetch(STOCK_APPS_URL + '?action=getMasterItems&t=' + Date.now(), { cache: 'no-store' }),
+      fetch(STOCK_APPS_URL + '?action=getStockCounts&limit=500&t=' + Date.now(), { cache: 'no-store' }),
+    ]);
+    const itemsData  = await itemsRes.json();
+    const countsData = await countsRes.json();
+
+    stockMasterItems  = itemsData.items || [];
+    stockHistory      = (countsData.data && countsData.data.history) || [];
+    stockLatestByItem = {};
+    ((countsData.data && countsData.data.latest) || []).forEach(c => {
+      stockLatestByItem[c.item] = c;
+    });
+
+    populateStockGroupFilter();
+    renderStock();
+    document.getElementById('stock-loading').style.display = 'none';
+    stockLoaded = true;
+  } catch(e) {
+    console.error('Stock load failed:', e);
+    document.getElementById('stock-loading').innerHTML = '<div style="color:var(--rose);">Failed to load stock data.</div>';
+  }
+
+  if (btn) btn.classList.remove('spinning');
+}
+
+function populateStockGroupFilter() {
+  const groups = [...new Set(stockMasterItems.map(i => i.group).filter(Boolean))].sort();
+  const sel = document.getElementById('stock-group-filter');
+  const cur = sel.value;
+  sel.innerHTML = '<option value="">All groups</option>' +
+    groups.map(g => `<option value="${escapeHTML(g)}"${g === cur ? ' selected' : ''}>${escapeHTML(g)}</option>`).join('');
+}
+
+function getItemStatus(item) {
+  const latest = stockLatestByItem[item.name];
+  if (!latest) return 'never';
+  const isLow = item.reorderPoint > 0 && Number(latest.count) < item.reorderPoint;
+  if (isLow) return 'low';
+  // Check if stale (>3 days)
+  const daysSinceCount = daysSinceISODate(latest.date);
+  if (daysSinceCount > 3) return 'stale';
+  return 'ok';
+}
+
+function daysSinceISODate(dateStr) {
+  if (!dateStr) return 999;
+  const d = new Date(dateStr);
+  if (isNaN(d)) return 999;
+  return Math.floor((Date.now() - d.getTime()) / 86400000);
+}
+
+function isCountedToday(item) {
+  const latest = stockLatestByItem[item.name];
+  if (!latest) return false;
+  const today = localDateStr();
+  return latest.date === today;
+}
+
+function renderStock() {
+  const search = document.getElementById('stock-search').value.trim().toLowerCase();
+  const groupF = document.getElementById('stock-group-filter').value;
+  const statusF= document.getElementById('stock-status-filter').value;
+
+  // Compute statuses
+  const itemsWithStatus = stockMasterItems.map(item => ({
+    item,
+    status: getItemStatus(item),
+    latest: stockLatestByItem[item.name] || null,
+  }));
+
+  // Stats
+  const lowItems   = itemsWithStatus.filter(x => x.status === 'low');
+  const staleItems = itemsWithStatus.filter(x => x.status === 'stale');
+  const todayCount = stockMasterItems.filter(isCountedToday).length;
+
+  document.getElementById('stock-stat-total').textContent  = stockMasterItems.length;
+  document.getElementById('stock-stat-today').textContent  = todayCount;
+  document.getElementById('stock-stat-today-sub').textContent = todayCount === stockMasterItems.length ? 'all items ✓' : 'items recorded';
+  document.getElementById('stock-stat-low').textContent    = lowItems.length;
+  document.getElementById('stock-stat-stale').textContent  = staleItems.length;
+
+  // Tab badge for low stock
+  const badge = document.getElementById('stock-badge');
+  if (lowItems.length > 0) {
+    badge.style.display = 'inline-block';
+    badge.textContent = lowItems.length;
+  } else {
+    badge.style.display = 'none';
+  }
+
+  // Render alert banner
+  renderStockAlertBanner(lowItems);
+
+  // Render stale section (only show if there are stale items AND no filter applied)
+  const staleSection = document.getElementById('stale-section');
+  if (staleItems.length > 0 && !search && !groupF && !statusF) {
+    staleSection.style.display = 'block';
+    document.getElementById('stale-count').textContent = staleItems.length;
+    document.getElementById('stale-grid').innerHTML = staleItems.map(renderStockCard).join('');
+  } else {
+    staleSection.style.display = 'none';
+  }
+
+  // Filter
+  const filtered = itemsWithStatus.filter(x => {
+    if (groupF  && x.item.group !== groupF) return false;
+    if (statusF && x.status !== statusF) return false;
+    if (search) {
+      const haystack = (x.item.name + ' ' + (x.item.vendor || '') + ' ' + (x.item.category || '')).toLowerCase();
+      if (!haystack.includes(search)) return false;
+    }
+    return true;
+  });
+
+  // Sort: low → stale → never → ok (alphabetical within)
+  const sortOrder = { low: 0, stale: 1, never: 2, ok: 3 };
+  filtered.sort((a, b) => {
+    const so = sortOrder[a.status] - sortOrder[b.status];
+    if (so !== 0) return so;
+    return a.item.name.localeCompare(b.item.name);
+  });
+
+  document.getElementById('all-items-count').textContent = filtered.length;
+  const grid = document.getElementById('stock-items-grid');
+  grid.innerHTML = filtered.length
+    ? filtered.map(renderStockCard).join('')
+    : '<div class="stock-empty" style="grid-column:1/-1;">No items match your filters.</div>';
+}
+
+function renderStockAlertBanner(lowItems) {
+  const container = document.getElementById('stock-alert-container');
+  if (lowItems.length === 0) {
+    container.innerHTML = `
+      <div class="stock-alert-banner empty">
+        <div class="stock-alert-header">
+          <div class="stock-alert-title">✓ All stock levels healthy</div>
+          <div class="stock-alert-count">${stockMasterItems.length} items</div>
+        </div>
+        <div style="font-size:13px;opacity:0.85;position:relative;z-index:1;">No items are below their reorder points right now. Keep counting to maintain accurate inventory.</div>
+      </div>`;
+    return;
+  }
+
+  container.innerHTML = `
+    <div class="stock-alert-banner">
+      <div class="stock-alert-header">
+        <div class="stock-alert-title">🔴 Low Stock Alert</div>
+        <div class="stock-alert-count">${lowItems.length} item${lowItems.length>1?'s':''} need attention</div>
+      </div>
+      <div class="stock-alert-grid">
+        ${lowItems.map(({ item, latest }) => `
+          <div class="stock-alert-card">
+            <div class="stock-alert-name">${escapeHTML(item.name)}</div>
+            <div class="stock-alert-numbers">
+              <span class="stock-alert-current">${formatCount(latest.count)}</span>
+              <span class="stock-alert-min">/ min ${item.reorderPoint} ${escapeHTML(item.unit||'')}</span>
+            </div>
+            ${item.vendor ? `
+              <div class="stock-alert-vendor">
+                <span>📞 ${escapeHTML(item.vendor)}</span>
+                ${item.vendorContact ? `<a href="${vendorContactLink(item.vendorContact)}" target="_blank" class="stock-alert-vlink">Contact</a>` : ''}
+              </div>` : ''}
+          </div>
+        `).join('')}
+      </div>
+    </div>`;
+}
+
+function renderStockCard({ item, status, latest }) {
+  const statusLabels = {
+    ok:    { dot: 'ok',    label: '🟢 OK' },
+    low:   { dot: 'low',   label: '🔴 Low' },
+    stale: { dot: 'stale', label: '⚪ Stale' },
+    never: { dot: 'never', label: '○ Not counted' },
+  };
+  const s = statusLabels[status];
+  const cardClass = status === 'low' ? 'low' : (status === 'stale' || status === 'never' ? 'stale' : '');
+
+  return `
+    <div class="stock-item-card ${cardClass}">
+      <div class="stock-item-head">
+        <div class="stock-item-info">
+          <div class="stock-item-name">${escapeHTML(item.name)}</div>
+          <div class="stock-item-cat">
+            ${item.category ? `<span class="stock-cat-pill">${escapeHTML(item.category)}</span>` : ''}
+            ${item.group ? `<span class="stock-group-pill">${escapeHTML(item.group)}</span>` : ''}
+          </div>
+        </div>
+        <div class="stock-status-dot ${s.dot}" title="${s.label}"></div>
+      </div>
+
+      <div class="stock-item-count">
+        ${latest ? `
+          <span class="stock-count-value ${status === 'low' ? 'low' : ''}">${formatCount(latest.count)}</span>
+          <span class="stock-count-unit">${escapeHTML(item.unit || '')}</span>
+          ${item.reorderPoint > 0 ? `<span class="stock-count-min ${status === 'low' ? 'warn' : ''}">min ${item.reorderPoint}</span>` : ''}
+        ` : `<span class="stock-count-empty">Never counted</span>`}
+      </div>
+
+      <div class="stock-item-meta">
+        ${latest ? `
+          <span class="stock-counter">
+            <span class="stock-mini-avatar">${escapeHTML((latest.counter||'?').charAt(0).toUpperCase())}</span>
+            <span>${escapeHTML(latest.counter || '—')}</span>
+          </span>
+          <span class="stock-time">${formatRelativeTime(latest.date)}</span>
+        ` : '<span class="stock-time">—</span>'}
+        ${item.vendor && status === 'low' ? `
+          <a href="${item.vendorContact ? vendorContactLink(item.vendorContact) : '#'}" target="_blank" class="stock-vendor-link" style="margin-left:auto;">
+            📞 ${escapeHTML(item.vendor)}
+          </a>` : item.vendor ? `<span class="stock-time" style="margin-left:auto;">${escapeHTML(item.vendor)}</span>` : ''}
+      </div>
+    </div>`;
+}
+
+function formatCount(n) {
+  const num = Number(n);
+  if (isNaN(num)) return String(n);
+  return num % 1 === 0 ? String(num) : num.toFixed(2).replace(/\.?0+$/,'');
+}
+
+function formatRelativeTime(dateStr) {
+  if (!dateStr) return '—';
+  const days = daysSinceISODate(dateStr);
+  if (days === 0) return 'Today';
+  if (days === 1) return 'Yesterday';
+  if (days < 7)   return `${days} days ago`;
+  if (days < 30)  return `${Math.floor(days/7)}w ago`;
+  return `${Math.floor(days/30)}mo ago`;
+}
+
+function vendorContactLink(s) {
+  const v = String(s).trim();
+  if (/^\+?\d[\d\s-]+$/.test(v)) {
+    return `https://wa.me/${v.replace(/\D/g,'')}`;
+  }
+  if (v.includes('@'))     return `mailto:${v}`;
+  if (v.startsWith('http')) return v;
+  return '#';
+}
+
+// ─── INIT ───
+document.addEventListener('DOMContentLoaded', () => {
+  if (getSession()) showDashboard();
+});
+</script>
+</body>
+</html>
