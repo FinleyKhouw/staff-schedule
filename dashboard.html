@@ -216,6 +216,67 @@
   .stock-section-title.warning{color:var(--rose);}
 
   .stock-empty{text-align:center;padding:3rem 1rem;color:var(--ink-faint);font-size:13px;background:var(--warm-white);border:1px dashed var(--border);border-radius:14px;}
+
+  /* ========== SALARY TAB ========== */
+  .salary-cycle-bar{display:flex;align-items:center;justify-content:space-between;background:var(--warm-white);border:1px solid var(--border);border-radius:13px;padding:14px 18px;margin-bottom:1.5rem;flex-wrap:wrap;gap:14px;box-shadow:var(--shadow);}
+  .cycle-nav{display:flex;align-items:center;gap:8px;}
+  .cycle-nav-btn{background:var(--bg);border:1px solid var(--border);width:34px;height:34px;border-radius:8px;cursor:pointer;font-size:18px;color:var(--ink-muted);display:flex;align-items:center;justify-content:center;font-family:'DM Sans',sans-serif;}
+  .cycle-nav-btn:hover{background:var(--gold-pale);color:var(--brand);}
+  .cycle-label{font-family:'Cormorant Garamond',serif;font-size:1.4rem;font-weight:600;color:var(--ink);min-width:200px;text-align:center;line-height:1.1;}
+  .cycle-sub{font-size:11px;color:var(--ink-muted);font-family:'DM Sans',sans-serif;font-weight:400;display:block;margin-top:2px;}
+  .salary-stats-row{display:flex;gap:18px;flex-wrap:wrap;}
+  .salary-stat{display:flex;flex-direction:column;}
+  .salary-stat-label{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.08em;color:var(--ink-faint);margin-bottom:2px;}
+  .salary-stat-value{font-family:'Cormorant Garamond',serif;font-size:1.4rem;color:var(--brand);font-weight:600;line-height:1;}
+
+  .salary-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(290px,1fr));gap:14px;}
+  .salary-card{background:var(--warm-white);border:1px solid var(--border);border-radius:14px;padding:16px 18px;box-shadow:var(--shadow);cursor:pointer;transition:all 0.15s;}
+  .salary-card:hover{transform:translateY(-2px);box-shadow:0 8px 24px rgba(92,0,24,0.1);border-color:rgba(201,168,76,0.3);}
+  .salary-card-head{display:flex;align-items:center;gap:11px;margin-bottom:14px;}
+  .salary-avatar{width:42px;height:42px;border-radius:50%;background:var(--brand);color:var(--gold);display:flex;align-items:center;justify-content:center;font-family:'Cormorant Garamond',serif;font-size:1.2rem;font-weight:600;flex-shrink:0;}
+  .salary-name{font-size:15px;font-weight:600;color:var(--ink);line-height:1.2;}
+  .salary-rate{font-size:11px;color:var(--ink-muted);margin-top:2px;}
+  .salary-total-row{padding:12px 14px;background:var(--gold-pale);border-radius:10px;margin-bottom:11px;border:1px solid rgba(201,168,76,0.2);}
+  .salary-total-label{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.08em;color:var(--gold-dark);margin-bottom:3px;}
+  .salary-total-value{font-family:'Cormorant Garamond',serif;font-size:1.7rem;font-weight:600;color:var(--brand);line-height:1;}
+  .salary-breakdown{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;font-size:11px;}
+  .salary-bd-item{text-align:center;padding:7px 4px;background:var(--bg);border-radius:7px;}
+  .salary-bd-item.late{background:var(--rose-pale);}
+  .salary-bd-item.ot{background:var(--green-light);}
+  .salary-bd-label{font-size:9px;font-weight:600;text-transform:uppercase;letter-spacing:0.05em;color:var(--ink-muted);margin-bottom:2px;}
+  .salary-bd-item.late .salary-bd-label{color:var(--rose);}
+  .salary-bd-item.ot .salary-bd-label{color:var(--green);}
+  .salary-bd-value{font-family:'Cormorant Garamond',serif;font-size:1.05rem;font-weight:600;color:var(--ink);line-height:1;}
+
+  /* DETAIL MODAL */
+  .modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,0.5);z-index:200;display:none;align-items:flex-start;justify-content:center;padding:2rem 1rem;overflow-y:auto;backdrop-filter:blur(4px);}
+  .modal-overlay.show{display:flex;}
+  .modal-card{background:var(--warm-white);border-radius:18px;max-width:600px;width:100%;box-shadow:0 20px 60px rgba(0,0,0,0.3);overflow:hidden;animation:modalIn 0.2s ease;}
+  @keyframes modalIn{from{opacity:0;transform:translateY(-12px);}to{opacity:1;transform:translateY(0);}}
+  .modal-header{padding:20px 24px 16px;background:var(--brand);color:var(--gold);display:flex;justify-content:space-between;align-items:flex-start;gap:12px;}
+  .modal-name{font-family:'Cormorant Garamond',serif;font-size:1.7rem;font-weight:600;color:var(--gold);}
+  .modal-cycle{font-size:11px;color:rgba(201,168,76,0.7);text-transform:uppercase;letter-spacing:0.08em;margin-top:2px;}
+  .modal-close{background:rgba(201,168,76,0.15);border:1px solid rgba(201,168,76,0.3);color:var(--gold);width:32px;height:32px;border-radius:8px;cursor:pointer;font-size:16px;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+  .modal-close:hover{background:rgba(201,168,76,0.25);}
+  .modal-summary{padding:16px 24px;background:var(--gold-pale);border-bottom:1px solid var(--border);display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px;}
+  .modal-summary-label{font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:0.06em;color:var(--gold-dark);}
+  .modal-summary-total{font-family:'Cormorant Garamond',serif;font-size:1.9rem;font-weight:600;color:var(--brand);line-height:1;}
+  .modal-body{padding:14px 24px 24px;max-height:60vh;overflow-y:auto;}
+  .entry-row{display:flex;align-items:center;gap:12px;padding:12px 0;border-bottom:1px solid var(--border);}
+  .entry-row:last-child{border-bottom:none;}
+  .entry-date{font-size:11px;color:var(--ink-muted);min-width:55px;font-weight:500;flex-shrink:0;}
+  .entry-date strong{display:block;font-family:'Cormorant Garamond',serif;font-size:1.1rem;color:var(--ink);font-weight:600;}
+  .entry-type-pill{font-size:10px;font-weight:700;letter-spacing:0.06em;padding:3px 9px;border-radius:30px;flex-shrink:0;}
+  .entry-type-pill.IN{background:var(--green-light);color:var(--green);}
+  .entry-type-pill.LATE{background:var(--rose-pale);color:var(--rose);}
+  .entry-type-pill.OVERTIME{background:var(--gold-light);color:var(--gold-dark);}
+  .entry-detail{flex:1;min-width:0;}
+  .entry-shift{font-size:13px;color:var(--ink);font-weight:500;line-height:1.2;}
+  .entry-meta{font-size:10px;color:var(--ink-muted);margin-top:2px;}
+  .entry-amount{font-family:'Cormorant Garamond',serif;font-size:1.15rem;font-weight:600;flex-shrink:0;}
+  .entry-amount.positive{color:var(--green);}
+  .entry-amount.negative{color:var(--rose);}
+  .modal-empty{text-align:center;padding:2rem 1rem;color:var(--ink-faint);font-size:13px;}
 </style>
 </head>
 <body>
@@ -263,6 +324,9 @@
     <button class="tab-btn" id="tab-btn-stock" onclick="switchTab('stock')">
       📦 Stock
       <span class="tab-badge" id="stock-badge" style="display:none;background:var(--rose);">0</span>
+    </button>
+    <button class="tab-btn" id="tab-btn-salary" onclick="switchTab('salary')">
+      💰 Salary
     </button>
   </div>
 
@@ -459,6 +523,60 @@
     <div id="stock-loading" class="loading">Loading stock data…</div>
     <div class="stock-items-grid" id="stock-items-grid"></div>
   </div><!-- /tab-stock -->
+
+  <!-- TAB: SALARY -->
+  <div class="tab-content" id="tab-salary">
+    <div style="margin-bottom:1rem;display:flex;align-items:center;gap:14px;flex-wrap:wrap;">
+      <span style="font-size:13px;color:var(--ink-muted);">Monthly cycle: 21st – 20th. Click any staff to see their daily breakdown.</span>
+      <button class="btn-refresh" id="salary-refresh-btn" onclick="loadSalary(true)">↻ Refresh</button>
+    </div>
+
+    <!-- CYCLE BAR -->
+    <div class="salary-cycle-bar">
+      <div class="cycle-nav">
+        <button class="cycle-nav-btn" onclick="changeCycle(-1)" title="Previous cycle">‹</button>
+        <div class="cycle-label" id="cycle-label">
+          —
+          <span class="cycle-sub" id="cycle-sub">—</span>
+        </div>
+        <button class="cycle-nav-btn" onclick="changeCycle(1)" title="Next cycle">›</button>
+      </div>
+      <div class="salary-stats-row">
+        <div class="salary-stat">
+          <span class="salary-stat-label">Total Payroll</span>
+          <span class="salary-stat-value" id="salary-total">—</span>
+        </div>
+        <div class="salary-stat">
+          <span class="salary-stat-label">Staff</span>
+          <span class="salary-stat-value" id="salary-staff-count">—</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- STAFF GRID -->
+    <div id="salary-loading" class="loading">Calculating salaries…</div>
+    <div class="salary-grid" id="salary-grid"></div>
+  </div><!-- /tab-salary -->
+
+  <!-- SALARY DETAIL MODAL -->
+  <div class="modal-overlay" id="salary-modal" onclick="closeSalaryModal(event)">
+    <div class="modal-card" onclick="event.stopPropagation()">
+      <div class="modal-header">
+        <div>
+          <div class="modal-name" id="modal-name">—</div>
+          <div class="modal-cycle" id="modal-cycle">—</div>
+        </div>
+        <button class="modal-close" onclick="closeSalaryModal()">✕</button>
+      </div>
+      <div class="modal-summary">
+        <div>
+          <div class="modal-summary-label">Total this cycle</div>
+        </div>
+        <div class="modal-summary-total" id="modal-total">—</div>
+      </div>
+      <div class="modal-body" id="modal-body"></div>
+    </div>
+  </div>
 </main>
 
 <script>
@@ -482,6 +600,11 @@ let stockMasterItems  = [];
 let stockHistory      = [];
 let stockLatestByItem = {};
 let stockLoaded       = false;
+
+// State for salary tab
+let salaryData       = null;
+let salaryCycleEnd   = null; // 'YYYY-MM' — month containing the 20th end-date
+let salaryLoaded     = false;
 
 const PROXIES = [
   u => `https://api.allorigins.win/raw?url=${encodeURIComponent(u)}`,
@@ -942,12 +1065,13 @@ function renderCard({ staff, status }) {
 
 // ─── TAB SWITCHING ───
 function switchTab(tabName) {
-  ['attendance','inbox','stock'].forEach(t => {
+  ['attendance','inbox','stock','salary'].forEach(t => {
     document.getElementById('tab-btn-' + t).classList.toggle('active', t === tabName);
     document.getElementById('tab-' + t).classList.toggle('active', t === tabName);
   });
-  if (tabName === 'inbox') loadInbox(false);
-  if (tabName === 'stock') loadStock(false);
+  if (tabName === 'inbox')  loadInbox(false);
+  if (tabName === 'stock')  loadStock(false);
+  if (tabName === 'salary') loadSalary(false);
 }
 
 // ─── APPROVAL INBOX ───
@@ -1404,6 +1528,163 @@ function vendorContactLink(s) {
   if (v.startsWith('http')) return v;
   return '#';
 }
+
+// ─── SALARY TAB ───
+const MONTH_NAMES = ['January','February','March','April','May','June','July','August','September','October','November','December'];
+
+function getDefaultCycleEnd() {
+  const n = new Date();
+  let y = n.getFullYear();
+  let m = n.getMonth() + 1;
+  // If today is on/after 21st, the active cycle ends NEXT month's 20th
+  if (n.getDate() >= 21) m = m + 1;
+  if (m > 12) { m = 1; y = y + 1; }
+  return y + '-' + String(m).padStart(2,'0');
+}
+
+async function loadSalary(showSpinner) {
+  const btn = document.getElementById('salary-refresh-btn');
+  if (showSpinner && btn) btn.classList.add('spinning');
+
+  if (!salaryCycleEnd) salaryCycleEnd = getDefaultCycleEnd();
+
+  document.getElementById('salary-loading').style.display = 'block';
+  document.getElementById('salary-grid').innerHTML = '';
+
+  try {
+    const res  = await fetch(APPS_SCRIPT_URL + '?action=getSalary&cycle=' + salaryCycleEnd + '&t=' + Date.now(), { cache: 'no-store' });
+    const data = await res.json();
+    if (data.result === 'success') {
+      salaryData = data.data;
+      renderSalary();
+    } else {
+      throw new Error(data.error || 'Failed');
+    }
+  } catch(e) {
+    console.error('Salary load failed:', e);
+    document.getElementById('salary-loading').innerHTML = '<div style="color:var(--rose);">Failed to load salary data.</div>';
+  }
+
+  if (btn) btn.classList.remove('spinning');
+  document.getElementById('salary-loading').style.display = 'none';
+  salaryLoaded = true;
+}
+
+function changeCycle(delta) {
+  const parts = salaryCycleEnd.split('-');
+  let y = parseInt(parts[0]);
+  let m = parseInt(parts[1]) + delta;
+  while (m > 12) { m -= 12; y += 1; }
+  while (m < 1)  { m += 12; y -= 1; }
+  salaryCycleEnd = y + '-' + String(m).padStart(2,'0');
+  loadSalary(true);
+}
+
+function formatRupiah(n) {
+  if (n == null || isNaN(n)) return 'Rp 0';
+  return 'Rp ' + Math.round(n).toLocaleString('id-ID');
+}
+
+function renderSalary() {
+  if (!salaryData) return;
+  const cycle = salaryData.cycle;
+  const staff = salaryData.staff || [];
+
+  // Format cycle label, e.g. "21 Apr – 20 May 2026"
+  const startDate = new Date(cycle.start + 'T00:00:00');
+  const endDate   = new Date(cycle.end   + 'T00:00:00');
+  const sameYear  = startDate.getFullYear() === endDate.getFullYear();
+  const startStr  = startDate.getDate() + ' ' + MONTH_NAMES[startDate.getMonth()].slice(0,3);
+  const endStr    = endDate.getDate() + ' ' + MONTH_NAMES[endDate.getMonth()].slice(0,3);
+  const yearStr   = sameYear ? endDate.getFullYear() : startDate.getFullYear() + '/' + endDate.getFullYear();
+  document.getElementById('cycle-label').innerHTML =
+    `${startStr} – ${endStr}<span class="cycle-sub">${yearStr}</span>`;
+
+  // Total payroll
+  const grandTotal = staff.reduce((sum, s) => sum + (s.total || 0), 0);
+  document.getElementById('salary-total').textContent = formatRupiah(grandTotal);
+  document.getElementById('salary-staff-count').textContent = staff.filter(s => s.daysWorked > 0 || s.otDays > 0).length;
+
+  // Sort: highest total first, then alphabetical
+  const sorted = [...staff].sort((a,b) => b.total - a.total || a.name.localeCompare(b.name));
+
+  document.getElementById('salary-grid').innerHTML = sorted.map(s => `
+    <div class="salary-card" onclick="openSalaryModal('${escapeHTML(s.name).replace(/'/g,"\\'")}')">
+      <div class="salary-card-head">
+        <div class="salary-avatar">${escapeHTML(s.name.charAt(0).toUpperCase())}</div>
+        <div style="flex:1;min-width:0;">
+          <div class="salary-name">${escapeHTML(s.name)}</div>
+          <div class="salary-rate">${formatRupiah(s.rate)} / day</div>
+        </div>
+      </div>
+      <div class="salary-total-row">
+        <div class="salary-total-label">Total</div>
+        <div class="salary-total-value">${formatRupiah(s.total)}</div>
+      </div>
+      <div class="salary-breakdown">
+        <div class="salary-bd-item">
+          <div class="salary-bd-label">Days</div>
+          <div class="salary-bd-value">${s.daysWorked}</div>
+        </div>
+        <div class="salary-bd-item ot">
+          <div class="salary-bd-label">OT</div>
+          <div class="salary-bd-value">${s.otDays}</div>
+        </div>
+        <div class="salary-bd-item late">
+          <div class="salary-bd-label">Late</div>
+          <div class="salary-bd-value">${s.lateDays}</div>
+        </div>
+      </div>
+    </div>
+  `).join('');
+}
+
+function openSalaryModal(name) {
+  if (!salaryData) return;
+  const s = salaryData.staff.find(x => x.name === name);
+  if (!s) return;
+
+  document.getElementById('modal-name').textContent  = s.name;
+  document.getElementById('modal-cycle').textContent = document.getElementById('cycle-label').textContent.split('\n')[0].trim();
+  document.getElementById('modal-total').textContent = formatRupiah(s.total);
+
+  const body = document.getElementById('modal-body');
+  if (!s.entries.length) {
+    body.innerHTML = '<div class="modal-empty">No attendance records this cycle.</div>';
+  } else {
+    body.innerHTML = s.entries.map(e => {
+      const d = new Date(e.date + 'T00:00:00');
+      const dateLabel = `<strong>${d.getDate()}</strong>${MONTH_NAMES[d.getMonth()].slice(0,3)}`;
+      const amountClass = e.amount >= 0 ? 'positive' : 'negative';
+      const amountStr = (e.amount >= 0 ? '+ ' : '− ') + formatRupiah(Math.abs(e.amount));
+      let detail = '';
+      if (e.type === 'IN')       detail = e.shift + (e.time ? ` <span class="entry-meta">at ${e.time.slice(0,5)}</span>` : '');
+      if (e.type === 'LATE')     detail = `${e.shift} <span class="entry-meta">${e.detail || ''}</span>`;
+      if (e.type === 'OVERTIME') detail = `${e.shift} <span class="entry-meta">${e.detail || ''}</span>`;
+      return `
+        <div class="entry-row">
+          <div class="entry-date">${dateLabel}</div>
+          <span class="entry-type-pill ${e.type}">${e.type}</span>
+          <div class="entry-detail">
+            <div class="entry-shift">${detail}</div>
+          </div>
+          <div class="entry-amount ${amountClass}">${amountStr}</div>
+        </div>`;
+    }).join('');
+  }
+
+  document.getElementById('salary-modal').classList.add('show');
+}
+
+function closeSalaryModal(event) {
+  if (event && event.target.id !== 'salary-modal') return;
+  document.getElementById('salary-modal').classList.remove('show');
+}
+
+// Close modal on Escape
+document.addEventListener('keydown', e => {
+  if (e.key === 'Escape') document.getElementById('salary-modal')?.classList.remove('show');
+});
 
 // ─── INIT ───
 document.addEventListener('DOMContentLoaded', () => {
