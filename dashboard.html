@@ -5,6 +5,8 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Owner Dashboard — Corebake</title>
 <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;500;600&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
 <style>
   :root {
     --bg:#F7F3EE; --warm-white:#FDFAF6;
@@ -218,6 +220,9 @@
   .stock-empty{text-align:center;padding:3rem 1rem;color:var(--ink-faint);font-size:13px;background:var(--warm-white);border:1px dashed var(--border);border-radius:14px;}
 
   /* ========== SALARY TAB ========== */
+  .btn-payslip{background:var(--brand);color:var(--gold);border:1px solid rgba(201,168,76,0.3);border-radius:8px;padding:8px 14px;font-family:'DM Sans',sans-serif;font-size:12px;font-weight:600;cursor:pointer;display:inline-flex;align-items:center;gap:6px;transition:all 0.15s;}
+  .btn-payslip:hover:not(:disabled){background:#3d000f;}
+  .btn-payslip:disabled{opacity:0.5;cursor:not-allowed;}
   .salary-cycle-bar{display:flex;align-items:center;justify-content:space-between;background:var(--warm-white);border:1px solid var(--border);border-radius:13px;padding:14px 18px;margin-bottom:1.5rem;flex-wrap:wrap;gap:14px;box-shadow:var(--shadow);}
   .cycle-nav{display:flex;align-items:center;gap:8px;}
   .cycle-nav-btn{background:var(--bg);border:1px solid var(--border);width:34px;height:34px;border-radius:8px;cursor:pointer;font-size:18px;color:var(--ink-muted);display:flex;align-items:center;justify-content:center;font-family:'DM Sans',sans-serif;}
@@ -529,6 +534,8 @@
     <div style="margin-bottom:1rem;display:flex;align-items:center;gap:14px;flex-wrap:wrap;">
       <span style="font-size:13px;color:var(--ink-muted);">Monthly cycle: 21st – 20th. Click any staff to see their daily breakdown.</span>
       <button class="btn-refresh" id="salary-refresh-btn" onclick="loadSalary(true)">↻ Refresh</button>
+      <button class="btn-payslip" id="payslip-combined-btn" onclick="downloadCombinedPayslips()" title="One PDF with all staff">📄 Download All (Combined)</button>
+      <button class="btn-payslip" id="payslip-zip-btn" onclick="downloadIndividualPayslips()" title="ZIP file with one PDF per person">📦 Download All (Individual ZIP)</button>
     </div>
 
     <!-- CYCLE BAR -->
@@ -609,7 +616,7 @@ let salaryLoaded     = false;
 const PROXIES = [
   u => `https://api.allorigins.win/raw?url=${encodeURIComponent(u)}`,
   u => `https://api.codetabs.com/v1/proxy?quest=${encodeURIComponent(u)}`,
-  u => `https://corsproxy.io/?${encodeURIComponent(u)}`,
+  u => `https://thingproxy.freeboard.io/fetch/${u}`,
 ];
 
 const SHIFT_INFO = {
@@ -1614,7 +1621,7 @@ function renderSalary() {
         <div class="salary-avatar">${escapeHTML(s.name.charAt(0).toUpperCase())}</div>
         <div style="flex:1;min-width:0;">
           <div class="salary-name">${escapeHTML(s.name)}</div>
-          <div class="salary-rate">${formatRupiah(s.rate)} / day</div>
+          <div class="salary-rate">${formatRupiah(s.rate)} / day${s.transportRate > 0 ? ` <span style="color:var(--gold-dark);">+ ${formatRupiah(s.transportRate)} transport</span>` : ''}</div>
         </div>
       </div>
       <div class="salary-total-row">
@@ -1685,6 +1692,389 @@ function closeSalaryModal(event) {
 document.addEventListener('keydown', e => {
   if (e.key === 'Escape') document.getElementById('salary-modal')?.classList.remove('show');
 });
+
+// ─── PAYSLIP GENERATION ───
+function generatePayslipPDF(staff, cycle) {
+  const { jsPDF } = window.jspdf;
+  const doc = new jsPDF({ unit: 'mm', format: 'a4' });
+
+  // Format cycle dates
+  const startDate = new Date(cycle.start + 'T00:00:00');
+  const endDate   = new Date(cycle.end   + 'T00:00:00');
+  const months    = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+  const periodLabel = `${startDate.getDate()} ${months[startDate.getMonth()]} – ${endDate.getDate()} ${months[endDate.getMonth()]} ${endDate.getFullYear()}`;
+  const payDate = new Date(endDate); payDate.setDate(payDate.getDate() + 1);
+  const payDateStr = `${payDate.getDate()}/${payDate.getMonth()+1}/${payDate.getFullYear()}`;
+
+  const margin = 15;
+  let y = margin;
+
+  // Header — Brand
+  doc.setFillColor(92, 0, 24); // brand color
+  doc.rect(0, 0, 210, 35, 'F');
+  doc.setFont('helvetica', 'bold');
+  doc.setFontSize(24);
+  doc.setTextColor(201, 168, 76); // gold
+  doc.text('COREBAKE', 105, 18, { align: 'center' });
+  doc.setFontSize(10);
+  doc.setFont('helvetica', 'normal');
+  doc.text('Payslip', 105, 26, { align: 'center' });
+
+  y = 50;
+
+  // Employee box
+  doc.setDrawColor(220, 220, 220);
+  doc.setLineWidth(0.3);
+  doc.setTextColor(40, 40, 40);
+  doc.setFontSize(9);
+  doc.setFont('helvetica', 'bold');
+  doc.text('EMPLOYEE', margin, y);
+  doc.text('PERIOD END', 110, y);
+  y += 5;
+  doc.setFont('helvetica', 'normal');
+  doc.setFontSize(13);
+  doc.text(staff.name, margin, y);
+  doc.setFontSize(11);
+  doc.text(`${endDate.getDate()}/${endDate.getMonth()+1}/${endDate.getFullYear()}`, 110, y);
+  y += 7;
+
+  doc.setFontSize(9);
+  doc.setFont('helvetica', 'bold');
+  doc.text('PAY PERIOD', margin, y);
+  doc.text('PAY DATE', 110, y);
+  y += 5;
+  doc.setFont('helvetica', 'normal');
+  doc.setFontSize(10);
+  doc.text(periodLabel, margin, y);
+  doc.text(payDateStr, 110, y);
+
+  y += 12;
+
+  // Earnings table
+  doc.setFillColor(245, 240, 230);
+  doc.rect(margin, y, 180, 8, 'F');
+  doc.setFont('helvetica', 'bold');
+  doc.setFontSize(10);
+  doc.setTextColor(60, 30, 40);
+  doc.text('EARNINGS', margin + 2, y + 5.5);
+  doc.text('DAYS / HOURS', 100, y + 5.5);
+  doc.text('AMOUNT', 195, y + 5.5, { align: 'right' });
+  y += 12;
+
+  // Daily wages
+  doc.setFont('helvetica', 'normal');
+  doc.setTextColor(40, 40, 40);
+  doc.setFontSize(10);
+  doc.text('Daily Wages', margin + 2, y);
+  doc.text(`${staff.daysWorked} day${staff.daysWorked !== 1 ? 's' : ''} × ${formatRupiah(staff.rate)}`, 100, y);
+  doc.text(formatRupiah(staff.totalBase), 195, y, { align: 'right' });
+  y += 7;
+
+  // Transport / Accommodation
+  if (staff.totalTransport > 0) {
+    doc.text('Transport / Accommodation', margin + 2, y);
+    doc.text(`${staff.daysWorked} day${staff.daysWorked !== 1 ? 's' : ''} × ${formatRupiah(staff.transportRate)}`, 100, y);
+    doc.text(formatRupiah(staff.totalTransport), 195, y, { align: 'right' });
+    y += 7;
+  }
+
+  // Overtime
+  if (staff.totalOT > 0) {
+    doc.text('Overtime', margin + 2, y);
+    doc.text(`${staff.otDays} day${staff.otDays !== 1 ? 's' : ''}`, 100, y);
+    doc.setTextColor(45, 106, 79);
+    doc.text(`+ ${formatRupiah(staff.totalOT)}`, 195, y, { align: 'right' });
+    doc.setTextColor(40, 40, 40);
+    y += 7;
+  }
+
+  // Late penalty
+  if (staff.totalLate > 0) {
+    doc.text('Late Penalty', margin + 2, y);
+    doc.text(`${staff.lateDays} day${staff.lateDays !== 1 ? 's' : ''}`, 100, y);
+    doc.setTextColor(160, 48, 48);
+    doc.text(`- ${formatRupiah(staff.totalLate)}`, 195, y, { align: 'right' });
+    doc.setTextColor(40, 40, 40);
+    y += 7;
+  }
+
+  y += 2;
+  doc.setDrawColor(200, 200, 200);
+  doc.line(margin, y, 195, y);
+  y += 7;
+
+  // Total
+  doc.setFillColor(245, 240, 230);
+  doc.rect(margin, y - 5, 180, 11, 'F');
+  doc.setFont('helvetica', 'bold');
+  doc.setFontSize(12);
+  doc.setTextColor(60, 30, 40);
+  doc.text('NET PAY', margin + 2, y + 2);
+  doc.setFontSize(14);
+  doc.setTextColor(92, 0, 24);
+  doc.text(formatRupiah(staff.total), 195, y + 2, { align: 'right' });
+  y += 15;
+
+  // Summary stats
+  y += 5;
+  doc.setFont('helvetica', 'bold');
+  doc.setFontSize(9);
+  doc.setTextColor(60, 30, 40);
+  doc.text('SUMMARY', margin, y);
+  y += 5;
+
+  doc.setFont('helvetica', 'normal');
+  doc.setFontSize(9);
+  doc.setTextColor(60, 60, 60);
+
+  const summary = [
+    ['Days Worked',     `${staff.daysWorked} day${staff.daysWorked !== 1 ? 's' : ''}`],
+    ['Daily Rate',      formatRupiah(staff.rate)],
+    ['Transport Rate',  staff.transportRate > 0 ? formatRupiah(staff.transportRate) : '—'],
+    ['Overtime Days',   `${staff.otDays} day${staff.otDays !== 1 ? 's' : ''}`],
+    ['Late Days',       `${staff.lateDays} day${staff.lateDays !== 1 ? 's' : ''}`],
+  ];
+
+  summary.forEach(([label, value]) => {
+    doc.text(label, margin + 2, y);
+    doc.text(value, 80, y);
+    y += 5;
+  });
+
+  // Footer
+  doc.setDrawColor(220, 220, 220);
+  doc.line(margin, 280, 195, 280);
+  doc.setFontSize(8);
+  doc.setTextColor(120, 120, 120);
+  doc.text('Generated by Corebake Staff Management', 105, 285, { align: 'center' });
+  doc.text(`Generated on ${new Date().toLocaleDateString('en-GB')}`, 105, 290, { align: 'center' });
+
+  return doc;
+}
+
+function downloadCombinedPayslips() {
+  if (!salaryData) { alert('Salary data not loaded yet.'); return; }
+  const btn = document.getElementById('payslip-combined-btn');
+  btn.disabled = true; btn.textContent = '⏳ Generating…';
+
+  try {
+    const { jsPDF } = window.jspdf;
+    const cycle = salaryData.cycle;
+    const eligibleStaff = salaryData.staff.filter(s => s.daysWorked > 0 || s.otDays > 0);
+
+    if (eligibleStaff.length === 0) {
+      alert('No staff with attendance to export.');
+      btn.disabled = false; btn.textContent = '📄 Download All (Combined)';
+      return;
+    }
+
+    let combinedDoc = null;
+    eligibleStaff.forEach((staff, i) => {
+      const doc = generatePayslipPDF(staff, cycle);
+      if (i === 0) {
+        combinedDoc = doc;
+      } else {
+        combinedDoc.addPage();
+        // Copy content from doc to combinedDoc — easier: regenerate on combinedDoc
+        combinedDoc.deletePage(combinedDoc.getNumberOfPages());
+        combinedDoc.addPage();
+        // Actually rebuild from scratch:
+      }
+    });
+
+    // Cleaner approach: build all pages on one doc
+    const finalDoc = new jsPDF({ unit: 'mm', format: 'a4' });
+    eligibleStaff.forEach((staff, i) => {
+      if (i > 0) finalDoc.addPage();
+      drawPayslipOnDoc(finalDoc, staff, cycle);
+    });
+
+    const dateStr = `${cycle.start}_to_${cycle.end}`;
+    finalDoc.save(`Corebake_Payslips_${dateStr}.pdf`);
+  } catch(e) {
+    console.error(e);
+    alert('Failed to generate PDFs: ' + e.message);
+  }
+
+  btn.disabled = false; btn.textContent = '📄 Download All (Combined)';
+}
+
+async function downloadIndividualPayslips() {
+  if (!salaryData) { alert('Salary data not loaded yet.'); return; }
+  const btn = document.getElementById('payslip-zip-btn');
+  btn.disabled = true; btn.textContent = '⏳ Generating ZIP…';
+
+  try {
+    const cycle = salaryData.cycle;
+    const eligibleStaff = salaryData.staff.filter(s => s.daysWorked > 0 || s.otDays > 0);
+
+    if (eligibleStaff.length === 0) {
+      alert('No staff with attendance to export.');
+      btn.disabled = false; btn.textContent = '📦 Download All (Individual ZIP)';
+      return;
+    }
+
+    const zip = new JSZip();
+    eligibleStaff.forEach(staff => {
+      const doc = generatePayslipPDF(staff, cycle);
+      const pdfBlob = doc.output('blob');
+      const safeName = staff.name.replace(/[^a-zA-Z0-9]/g, '_');
+      zip.file(`Corebake_Payslip_${safeName}_${cycle.start}.pdf`, pdfBlob);
+    });
+
+    const zipBlob = await zip.generateAsync({ type: 'blob' });
+    const url = URL.createObjectURL(zipBlob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = `Corebake_Payslips_${cycle.start}_to_${cycle.end}.zip`;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
+
+  } catch(e) {
+    console.error(e);
+    alert('Failed to generate ZIP: ' + e.message);
+  }
+
+  btn.disabled = false; btn.textContent = '📦 Download All (Individual ZIP)';
+}
+
+// Helper for combined PDF — draws payslip content on existing doc/page
+function drawPayslipOnDoc(doc, staff, cycle) {
+  const startDate = new Date(cycle.start + 'T00:00:00');
+  const endDate   = new Date(cycle.end   + 'T00:00:00');
+  const months    = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+  const periodLabel = `${startDate.getDate()} ${months[startDate.getMonth()]} – ${endDate.getDate()} ${months[endDate.getMonth()]} ${endDate.getFullYear()}`;
+  const payDate = new Date(endDate); payDate.setDate(payDate.getDate() + 1);
+  const payDateStr = `${payDate.getDate()}/${payDate.getMonth()+1}/${payDate.getFullYear()}`;
+
+  const margin = 15;
+  let y = 0;
+
+  doc.setFillColor(92, 0, 24);
+  doc.rect(0, 0, 210, 35, 'F');
+  doc.setFont('helvetica', 'bold');
+  doc.setFontSize(24);
+  doc.setTextColor(201, 168, 76);
+  doc.text('COREBAKE', 105, 18, { align: 'center' });
+  doc.setFontSize(10);
+  doc.setFont('helvetica', 'normal');
+  doc.text('Payslip', 105, 26, { align: 'center' });
+
+  y = 50;
+  doc.setTextColor(40, 40, 40);
+  doc.setFontSize(9);
+  doc.setFont('helvetica', 'bold');
+  doc.text('EMPLOYEE', margin, y);
+  doc.text('PERIOD END', 110, y);
+  y += 5;
+  doc.setFont('helvetica', 'normal');
+  doc.setFontSize(13);
+  doc.text(staff.name, margin, y);
+  doc.setFontSize(11);
+  doc.text(`${endDate.getDate()}/${endDate.getMonth()+1}/${endDate.getFullYear()}`, 110, y);
+  y += 7;
+  doc.setFontSize(9);
+  doc.setFont('helvetica', 'bold');
+  doc.text('PAY PERIOD', margin, y);
+  doc.text('PAY DATE', 110, y);
+  y += 5;
+  doc.setFont('helvetica', 'normal');
+  doc.setFontSize(10);
+  doc.text(periodLabel, margin, y);
+  doc.text(payDateStr, 110, y);
+  y += 12;
+
+  doc.setFillColor(245, 240, 230);
+  doc.rect(margin, y, 180, 8, 'F');
+  doc.setFont('helvetica', 'bold');
+  doc.setFontSize(10);
+  doc.setTextColor(60, 30, 40);
+  doc.text('EARNINGS', margin + 2, y + 5.5);
+  doc.text('DAYS / HOURS', 100, y + 5.5);
+  doc.text('AMOUNT', 195, y + 5.5, { align: 'right' });
+  y += 12;
+
+  doc.setFont('helvetica', 'normal');
+  doc.setTextColor(40, 40, 40);
+  doc.setFontSize(10);
+  doc.text('Daily Wages', margin + 2, y);
+  doc.text(`${staff.daysWorked} day${staff.daysWorked !== 1 ? 's' : ''} × ${formatRupiah(staff.rate)}`, 100, y);
+  doc.text(formatRupiah(staff.totalBase), 195, y, { align: 'right' });
+  y += 7;
+
+  if (staff.totalTransport > 0) {
+    doc.text('Transport / Accommodation', margin + 2, y);
+    doc.text(`${staff.daysWorked} day${staff.daysWorked !== 1 ? 's' : ''} × ${formatRupiah(staff.transportRate)}`, 100, y);
+    doc.text(formatRupiah(staff.totalTransport), 195, y, { align: 'right' });
+    y += 7;
+  }
+
+  if (staff.totalOT > 0) {
+    doc.text('Overtime', margin + 2, y);
+    doc.text(`${staff.otDays} day${staff.otDays !== 1 ? 's' : ''}`, 100, y);
+    doc.setTextColor(45, 106, 79);
+    doc.text(`+ ${formatRupiah(staff.totalOT)}`, 195, y, { align: 'right' });
+    doc.setTextColor(40, 40, 40);
+    y += 7;
+  }
+
+  if (staff.totalLate > 0) {
+    doc.text('Late Penalty', margin + 2, y);
+    doc.text(`${staff.lateDays} day${staff.lateDays !== 1 ? 's' : ''}`, 100, y);
+    doc.setTextColor(160, 48, 48);
+    doc.text(`- ${formatRupiah(staff.totalLate)}`, 195, y, { align: 'right' });
+    doc.setTextColor(40, 40, 40);
+    y += 7;
+  }
+
+  y += 2;
+  doc.setDrawColor(200, 200, 200);
+  doc.line(margin, y, 195, y);
+  y += 7;
+
+  doc.setFillColor(245, 240, 230);
+  doc.rect(margin, y - 5, 180, 11, 'F');
+  doc.setFont('helvetica', 'bold');
+  doc.setFontSize(12);
+  doc.setTextColor(60, 30, 40);
+  doc.text('NET PAY', margin + 2, y + 2);
+  doc.setFontSize(14);
+  doc.setTextColor(92, 0, 24);
+  doc.text(formatRupiah(staff.total), 195, y + 2, { align: 'right' });
+  y += 15;
+
+  y += 5;
+  doc.setFont('helvetica', 'bold');
+  doc.setFontSize(9);
+  doc.setTextColor(60, 30, 40);
+  doc.text('SUMMARY', margin, y);
+  y += 5;
+  doc.setFont('helvetica', 'normal');
+  doc.setFontSize(9);
+  doc.setTextColor(60, 60, 60);
+
+  const summary = [
+    ['Days Worked',     `${staff.daysWorked} day${staff.daysWorked !== 1 ? 's' : ''}`],
+    ['Daily Rate',      formatRupiah(staff.rate)],
+    ['Transport Rate',  staff.transportRate > 0 ? formatRupiah(staff.transportRate) : '—'],
+    ['Overtime Days',   `${staff.otDays} day${staff.otDays !== 1 ? 's' : ''}`],
+    ['Late Days',       `${staff.lateDays} day${staff.lateDays !== 1 ? 's' : ''}`],
+  ];
+  summary.forEach(([label, value]) => {
+    doc.text(label, margin + 2, y);
+    doc.text(value, 80, y);
+    y += 5;
+  });
+
+  doc.setDrawColor(220, 220, 220);
+  doc.line(margin, 280, 195, 280);
+  doc.setFontSize(8);
+  doc.setTextColor(120, 120, 120);
+  doc.text('Generated by Corebake Staff Management', 105, 285, { align: 'center' });
+  doc.text(`Generated on ${new Date().toLocaleDateString('en-GB')}`, 105, 290, { align: 'center' });
+}
 
 // ─── INIT ───
 document.addEventListener('DOMContentLoaded', () => {
