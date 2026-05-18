@@ -611,6 +611,13 @@
     font-weight: 600;
   }
 
+  .portal-btn.recipe {
+    background: var(--gold);
+    color: var(--brand);
+    border: 1px solid rgba(92,0,24,0.15);
+    font-weight: 600;
+  }
+
   .portal-btn.disabled {
     opacity: 0.45;
     cursor: not-allowed;
@@ -949,7 +956,7 @@
     <a href="attendance.html" class="portal-btn attendance">
       <span class="portal-btn-icon">👆</span> Clock In / Out
     </a>
-    <a href="javascript:void(0)" class="portal-btn stock disabled" onclick="return false;" title="Coming soon">
+    <a href="stock-count.html" class="portal-btn stock">
       <span class="portal-btn-icon">📦</span> Stock Opname
     </a>
   </div>
@@ -974,9 +981,9 @@
     </div>
     <div class="legend">
       <span class="legend-label">Legend</span>
-      <div class="legend-item"><div class="legend-dot" style="background:var(--teal-light);border:1px solid rgba(45,110,110,0.2)"></div> Shift 1 — FOH 08:00–14:00 · PROD 05:00–11:00</div>
-      <div class="legend-item"><div class="legend-dot" style="background:var(--gold-light);border:1px solid rgba(196,154,60,0.2)"></div> Shift 2 — FOH 12:00–18:00 · PROD 08:00–14:00</div>
-      <div class="legend-item"><div class="legend-dot" style="background:var(--slate-light);border:1px solid rgba(74,85,104,0.2)"></div> Full Day — FOH 08:00–18:00 · PROD 05:00–14:00</div>
+      <div class="legend-item"><div class="legend-dot" style="background:var(--teal-light);border:1px solid rgba(45,110,110,0.2)"></div> Shift 1 (AM) — FOH 08:30–16:30 · PROD 04:30–12:30</div>
+      <div class="legend-item"><div class="legend-dot" style="background:var(--gold-light);border:1px solid rgba(196,154,60,0.2)"></div> Shift 2 (PM) — FOH 10:00–18:00 · PROD 09:00–17:00</div>
+      <div class="legend-item"><div class="legend-dot" style="background:var(--slate-light);border:1px solid rgba(74,85,104,0.2)"></div> Full Day — FOH 08:30–18:00 · PROD 04:30–17:00</div>
       <div class="legend-item"><div class="legend-dot" style="background:var(--rose-pale);border:1px solid rgba(160,48,48,0.15)"></div> Day Off</div>
     </div>
     <p class="note">Schedule syncs automatically from Google Sheet every 2 minutes.</p>
@@ -1019,7 +1026,7 @@ const CACHE_TTL  = 90 * 1000;
 const PROXIES    = [
   u => `https://api.allorigins.win/raw?url=${encodeURIComponent(u)}`,
   u => `https://api.codetabs.com/v1/proxy?quest=${encodeURIComponent(u)}`,
-  u => `https://corsproxy.io/?${encodeURIComponent(u)}`,
+  u => `https://thingproxy.freeboard.io/fetch/${u}`,
   u => `https://thingproxy.freeboard.io/fetch/${u}`,
 ];
 
@@ -1037,9 +1044,9 @@ const SHIFT_TYPES = {
 function shiftTime(type, cat) {
   if (type === 'off' || type === 'none') return '—';
   const isProd = cat === 'kitchen';
-  if (type === 'am')   return isProd ? '05:00–11:00' : '08:00–14:00';
-  if (type === 'pm')   return isProd ? '08:00–14:00' : '12:00–18:00';
-  if (type === 'full') return isProd ? '05:00–14:00' : '08:00–18:00';
+  if (type === 'am')   return isProd ? '04:30–12:30' : '08:30–16:30';
+  if (type === 'pm')   return isProd ? '09:00–17:00' : '10:00–18:00';
+  if (type === 'full') return isProd ? '04:30–17:00' : '08:30–18:00';
   return '—';
 }
 
@@ -1302,8 +1309,8 @@ function renderSummary(sched) {
   document.getElementById('summary-row').innerHTML=`
     <div class="summary-card"><div class="label">Total staff</div><div class="value">${STAFF.length}</div><div class="sub">across all roles</div></div>
     <div class="summary-card"><div class="label">Shifts this week</div><div class="value">${total}</div><div class="sub">${off} days off</div></div>
-    <div class="summary-card"><div class="label">Shift 1 (AM)</div><div class="value">${am}</div><div class="sub">PROD 05:00 · FOH 08:00</div></div>
-    <div class="summary-card"><div class="label">Shift 2 (PM)</div><div class="value">${pm}</div><div class="sub">PROD 08:00 · FOH 12:00</div></div>
+    <div class="summary-card"><div class="label">Shift 1 (AM)</div><div class="value">${am}</div><div class="sub">PROD 04:30 · FOH 08:30</div></div>
+    <div class="summary-card"><div class="label">Shift 2 (PM)</div><div class="value">${pm}</div><div class="sub">PROD 09:00 · FOH 10:00</div></div>
     <div class="summary-card"><div class="label">Full Day</div><div class="value">${full}</div><div class="sub">PROD 05:00 · FOH 08:00</div></div>`;
 }
 
