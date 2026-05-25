@@ -357,6 +357,18 @@
   .shift-badge.full{background:var(--slate-light);border-color:rgba(74,85,104,0.2);color:var(--slate);}
   .shift-badge.off{background:var(--rose-pale);border-color:rgba(160,48,48,0.15);color:var(--rose);}
 
+  /* SHIFT TIMER */
+  .shift-timer-card{background:linear-gradient(135deg,#1a3a2a 0%,#0d2419 100%);border-radius:16px;padding:1.25rem 1.5rem;text-align:center;box-shadow:0 8px 24px rgba(0,0,0,0.15);border:1px solid rgba(45,106,79,0.3);}
+  .stc-label{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.1em;color:rgba(216,243,220,0.6);margin-bottom:8px;}
+  .stc-time{font-family:'Cormorant Garamond',serif;font-size:3rem;font-weight:600;color:#D8F3DC;line-height:1;letter-spacing:0.04em;margin-bottom:4px;}
+  .stc-time.paused{color:rgba(216,243,220,0.45);}
+  .stc-break{font-size:11px;color:rgba(201,168,76,0.85);margin-bottom:12px;font-weight:500;}
+  .stc-actions{margin-top:14px;}
+  .stc-btn{background:rgba(255,255,255,0.08);border:1.5px solid rgba(255,255,255,0.15);border-radius:10px;padding:11px 22px;font-family:'DM Sans',sans-serif;font-size:14px;font-weight:600;cursor:pointer;display:inline-flex;align-items:center;gap:8px;transition:all 0.15s;color:#D8F3DC;width:100%;justify-content:center;}
+  .stc-btn.pause:hover{background:rgba(255,255,255,0.13);}
+  .stc-btn.resume{background:rgba(45,106,79,0.4);border-color:rgba(45,106,79,0.6);color:#D8F3DC;}
+  .stc-btn.resume:hover{background:rgba(45,106,79,0.55);}
+
   /* MY LOG BUTTON */
   .btn-mylog{width:100%;background:var(--warm-white);border:1.5px solid var(--border);border-radius:12px;padding:13px;font-family:'DM Sans',sans-serif;font-size:14px;font-weight:600;color:var(--brand);cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px;transition:all 0.15s;}
   .btn-mylog:hover{background:var(--gold-pale);border-color:rgba(201,168,76,0.4);}
@@ -553,6 +565,21 @@
         <div class="status-pill free" id="status-pill">
           <span class="status-dot" id="status-dot"></span>
           <span id="status-text">Not clocked in today</span>
+        </div>
+      </div>
+
+      <!-- SHIFT TIMER (shown while clocked in) -->
+      <div id="shift-timer-wrap" style="display:none;margin-top:1rem;">
+        <div class="shift-timer-card">
+          <div class="stc-label" id="stc-label">Shift in progress</div>
+          <div class="stc-time" id="stc-time">00:00:00</div>
+          <div class="stc-break" id="stc-break" style="display:none;">☕ Break: <span id="stc-break-time">00:00</span></div>
+          <div class="stc-actions">
+            <button class="stc-btn pause" id="stc-pause-btn" onclick="toggleBreak()">
+              <span id="stc-btn-icon">⏸</span>
+              <span id="stc-btn-label">Take a Break</span>
+            </button>
+          </div>
         </div>
       </div>
 
@@ -917,6 +944,218 @@ async function syncTodayFromSheet() {
 }
 
 // ─── AUTO-DETERMINE CLOCK IN/OUT FROM STATE ───
+// ─── SHIFT TIMER ───
+const BREAK_KEY     = () => 'cb_break_' + localDateStr();
+const BREAK_LOG_KEY = () => 'cb_breaklog_' + localDateStr();
+
+let shiftTimerInterval = null;
+let breakTimerInterval  = null;
+let clockInTimeSecs     = null; // cached from spreadsheet
+
+// Fetch today's clock-in time from published CSV
+async function fetchClockInTimeFromSheet() {
+  if (!currentUser) return null;
+  try {
+    const text = await raceFetch(ATTENDANCE_CSV);
+    const today = localDateStr();
+    const lines = text.split(/\r?\n/).filter(l => l.trim());
+    let earliest = null;
+    for (const line of lines) {
+      const cols = parseCSVRow(line);
+      // cols: 0=Timestamp, 1=Name, 2=Role, 3=Date, 4=Time, 5=Type, 6=Geo, 7=Working Hour, 8=Break
+      const name = (cols[1] || '').trim().replace(/^'/,'');
+      const date = (cols[3] || '').trim().replace(/^'/,'');
+      const time = (cols[4] || '').trim().replace(/^'/,'');
+      const type = (cols[5] || '').trim().replace(/^'/,'');
+      if (name !== currentUser.name) continue;
+      if (date !== today) continue;
+      if (type !== 'Clock In') continue;
+      const m = time.match(/(\d{1,2}):(\d{2})(?::(\d{2}))?/);
+      if (!m) continue;
+      const secs = parseInt(m[1])*3600 + parseInt(m[2])*60 + (parseInt(m[3])||0);
+      if (earliest === null || secs < earliest) earliest = secs;
+    }
+    if (earliest !== null) return earliest;
+    throw new Error('Not found in sheet');
+  } catch(e) {
+    console.warn('Falling back to localStorage for clock-in time:', e);
+    try {
+      const log = JSON.parse(localStorage.getItem(TODAY_KEY()) || '[]');
+      const inEntries = log.filter(e => e.type === 'in').sort((a,b) => a.time.localeCompare(b.time));
+      if (inEntries.length) {
+        const p = inEntries[0].time.split(':').map(Number);
+        return (p[0]||0)*3600 + (p[1]||0)*60 + (p[2]||0);
+      }
+    } catch(e2) {}
+    return null;
+  }
+}
+
+// Proper CSV row parser — handles commas inside quoted fields
+function parseCSVRow(line) {
+  const cols = []; let cur = ''; let inQ = false;
+  for (let i = 0; i < line.length; i++) {
+    const ch = line[i];
+    if (ch === '"') { inQ = !inQ; }
+    else if (ch === ',' && !inQ) { cols.push(cur); cur = ''; }
+    else cur += ch;
+  }
+  cols.push(cur);
+  return cols;
+}
+
+function parseTimeToSecs(timeStr) {
+  if (!timeStr) return 0;
+  const p = timeStr.split(':').map(Number);
+  return (p[0]||0)*3600 + (p[1]||0)*60 + (p[2]||0);
+}
+
+function secsToHMS(s) {
+  const h = Math.floor(s/3600);
+  const m = Math.floor((s%3600)/60);
+  const sec = s%60;
+  return String(h).padStart(2,'0')+':'+String(m).padStart(2,'0')+':'+String(sec).padStart(2,'0');
+}
+
+function secsTOMM(s) {
+  const m = Math.floor(s/60), sec = s%60;
+  return String(m).padStart(2,'0')+':'+String(sec).padStart(2,'0');
+}
+
+function getTotalBreakSecs() {
+  try {
+    const log = JSON.parse(localStorage.getItem(BREAK_LOG_KEY()) || '[]');
+    return log.reduce((sum, b) => sum + (b.duration || 0), 0);
+  } catch(e) { return 0; }
+}
+
+function getCurrentBreakSecs() {
+  const isOnBreak = localStorage.getItem(BREAK_KEY()) === 'paused';
+  if (!isOnBreak) return 0;
+  const breakStart = parseInt(localStorage.getItem(BREAK_KEY() + '_start') || '0');
+  return Math.floor(Date.now()/1000) - breakStart;
+}
+
+async function startShiftTimer() {
+  if (shiftTimerInterval) clearInterval(shiftTimerInterval);
+  const wrap = document.getElementById('shift-timer-wrap');
+  if (!wrap) return;
+  wrap.style.display = 'block';
+
+  // Fetch clock-in time from spreadsheet once, cache it
+  clockInTimeSecs = await fetchClockInTimeFromSheet();
+
+  shiftTimerInterval = setInterval(() => {
+    const isOnBreak = localStorage.getItem(BREAK_KEY()) === 'paused';
+
+    // Pause main timer completely when on break
+    const timeEl = document.getElementById('stc-time');
+    const labelEl = document.getElementById('stc-label');
+
+    if (isOnBreak) {
+      if (timeEl) timeEl.classList.add('paused');
+      if (labelEl) labelEl.textContent = 'On break';
+      return; // don't tick the main timer
+    }
+
+    if (timeEl) timeEl.classList.remove('paused');
+    if (labelEl) labelEl.textContent = 'Shift in progress';
+
+    if (clockInTimeSecs == null) return;
+
+    const now = new Date();
+    const nowSecs = now.getHours()*3600 + now.getMinutes()*60 + now.getSeconds();
+    const breakSecs = getTotalBreakSecs(); // only completed breaks
+    let elapsed = nowSecs - clockInTimeSecs - breakSecs;
+    if (elapsed < 0) elapsed = 0;
+
+    if (timeEl) timeEl.textContent = secsToHMS(elapsed);
+  }, 1000);
+}
+
+function stopShiftTimer() {
+  if (shiftTimerInterval) { clearInterval(shiftTimerInterval); shiftTimerInterval = null; }
+  const wrap = document.getElementById('shift-timer-wrap');
+  if (wrap) wrap.style.display = 'none';
+  clockInTimeSecs = null;
+}
+
+function startBreakTimer() {
+  if (breakTimerInterval) clearInterval(breakTimerInterval);
+  const breakStart = parseInt(localStorage.getItem(BREAK_KEY() + '_start') || '0');
+
+  breakTimerInterval = setInterval(() => {
+    const now = Math.floor(Date.now() / 1000);
+    const currentBreak = now - breakStart;
+    const totalPrev = getTotalBreakSecs();
+    const el = document.getElementById('stc-break-time');
+    if (el) el.textContent = secsTOMM(totalPrev + currentBreak);
+  }, 1000);
+}
+
+function stopBreakTimer() {
+  if (breakTimerInterval) { clearInterval(breakTimerInterval); breakTimerInterval = null; }
+}
+
+function toggleBreak() {
+  const isOnBreak = localStorage.getItem(BREAK_KEY()) === 'paused';
+  const btn = document.getElementById('stc-pause-btn');
+  const breakRow = document.getElementById('stc-break');
+  const icon = document.getElementById('stc-btn-icon');
+  const label = document.getElementById('stc-btn-label');
+
+  if (!isOnBreak) {
+    // START break
+    const nowSecs = Math.floor(Date.now() / 1000);
+    localStorage.setItem(BREAK_KEY(), 'paused');
+    localStorage.setItem(BREAK_KEY() + '_start', String(nowSecs));
+    btn.classList.remove('pause'); btn.classList.add('resume');
+    icon.textContent = '▶'; label.textContent = 'Resume Shift';
+    breakRow.style.display = 'block';
+    startBreakTimer();
+  } else {
+    // END break — log its duration
+    const breakStart = parseInt(localStorage.getItem(BREAK_KEY() + '_start') || '0');
+    const nowSecs = Math.floor(Date.now() / 1000);
+    const duration = nowSecs - breakStart;
+    try {
+      const log = JSON.parse(localStorage.getItem(BREAK_LOG_KEY()) || '[]');
+      log.push({ start: breakStart, duration });
+      localStorage.setItem(BREAK_LOG_KEY(), JSON.stringify(log));
+    } catch(e) {}
+    localStorage.removeItem(BREAK_KEY());
+    localStorage.removeItem(BREAK_KEY() + '_start');
+    btn.classList.remove('resume'); btn.classList.add('pause');
+    icon.textContent = '⏸'; label.textContent = 'Take a Break';
+    stopBreakTimer();
+    // Update break total display
+    const el = document.getElementById('stc-break-time');
+    if (el) el.textContent = secsTOMM(getTotalBreakSecs());
+  }
+}
+
+function syncTimerState() {
+  // Called on page load — restore pause button state if user was on break
+  const isOnBreak = localStorage.getItem(BREAK_KEY()) === 'paused';
+  const btn = document.getElementById('stc-pause-btn');
+  const breakRow = document.getElementById('stc-break');
+  const icon = document.getElementById('stc-btn-icon');
+  const label = document.getElementById('stc-btn-label');
+  const breakTotal = getTotalBreakSecs();
+
+  if (isOnBreak) {
+    btn?.classList.remove('pause'); btn?.classList.add('resume');
+    if (icon) icon.textContent = '▶';
+    if (label) label.textContent = 'Resume Shift';
+    startBreakTimer();
+  }
+  if (breakRow && (isOnBreak || breakTotal > 0)) {
+    breakRow.style.display = 'block';
+    const el = document.getElementById('stc-break-time');
+    if (el) el.textContent = secsTOMM(breakTotal);
+  }
+}
+
 function autoSetType() {
   if (!currentUser) return;
   const state   = localStorage.getItem(STATE_KEY(currentUser.name)) || 'out';
@@ -1003,9 +1242,11 @@ function updateStatusPill(state, name) {
   if (state==='in') {
     pill.className='status-pill clocked-in'; dot.className='status-dot pulse';
     txt.textContent=`On shift since ${lastIn}`;
+    startShiftTimer().then(() => syncTimerState());
   } else {
     pill.className='status-pill free'; dot.className='status-dot';
     txt.textContent='Not clocked in today';
+    stopShiftTimer();
   }
 }
 
@@ -1017,6 +1258,17 @@ function goToStep1() {
 
 function goToStep2() {
   const err = document.getElementById('err-1');
+
+  // Block clock-out if currently on break
+  if (selectedType === 'out' && localStorage.getItem(BREAK_KEY()) === 'paused') {
+    if (err) {
+      err.textContent = '⏸ You\'re currently on break. Please resume your shift before clocking out.';
+      err.style.display = 'block';
+    }
+    return;
+  }
+  if (err) err.style.display = 'none';
+
   if (document.getElementById('btn-next-1').disabled) return;
   stopSelfieCamera();
   qrVerified=false; selfieDataURL=null;
@@ -1235,6 +1487,7 @@ function retakeSelfie() {
 const OFFICE_LAT  = -6.262554485496611;
 const OFFICE_LNG  = 106.6313095940617;
 const RADIUS_M    = 100; // metres
+const GEOFENCE_ENABLED = true; // set to false to disable for testing
 
 function getDistanceM(lat1, lng1, lat2, lng2) {
   const R = 6371000;
@@ -1247,6 +1500,9 @@ function getDistanceM(lat1, lng1, lat2, lng2) {
 }
 
 async function checkGeofence() {
+  if (!GEOFENCE_ENABLED) {
+    return { allowed: true, location: 'testing', distance: 0 };
+  }
   return new Promise((resolve) => {
     if (!navigator.geolocation) {
       resolve({ allowed: false, location: '', error: 'Geolocation is not supported on this device.' });
@@ -1308,6 +1564,7 @@ async function submitAttendance() {
     name:currentUser.name, role:currentUser.role,
     date:dateStr, time:timeStr, type:selectedType,
     location: geo.location,
+    breakTime: selectedType === 'out' ? secsTOMM(getTotalBreakSecs()) : '',
   };
   try {
     await fetch(APPS_SCRIPT_URL,{method:'POST',mode:'no-cors',headers:{'Content-Type':'text/plain'},body:JSON.stringify(entry)});
@@ -1329,6 +1586,8 @@ async function submitAttendance() {
 // ─── SUCCESS ───
 function showSuccess(s, timeStr) {
   stopSelfieCamera(); setStepDots(4); showStep('step-success');
+  // Stop shift timer when clocking out
+  if (selectedType === 'out') { stopShiftTimer(); stopBreakTimer(); }
   const isIn=selectedType==='in';
   const overlay=document.getElementById('success-type-overlay');
   overlay.textContent=isIn?'▶ Clocked In':'◼ Clocked Out';
@@ -1344,7 +1603,11 @@ function showSuccess(s, timeStr) {
   const dur=document.getElementById('success-duration');
   if(!isIn){
     const inTime=getLastTime(s.name,'in');
-    if(inTime!=='—'){dur.textContent=`Total shift: ${calcDuration(inTime,timeStr)}`;dur.style.display='inline-block';}
+    const breakSecs = getTotalBreakSecs();
+    let durText = '';
+    if(inTime!=='—') durText = `Total shift: ${calcDuration(inTime,timeStr)}`;
+    if(breakSecs > 0) durText += `  ·  ☕ Break: ${secsTOMM(breakSecs)}`;
+    if(durText){ dur.textContent = durText; dur.style.display='inline-block'; }
     else dur.style.display='none';
   } else dur.style.display='none';
   const hc2=document.getElementById('history-card'); if(hc2) hc2.style.display='none';
