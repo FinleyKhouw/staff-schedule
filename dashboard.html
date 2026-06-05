@@ -614,9 +614,10 @@ let salaryCycleEnd   = null; // 'YYYY-MM' — month containing the 20th end-date
 let salaryLoaded     = false;
 
 const PROXIES = [
+  u => `https://corsproxy.io/?url=${encodeURIComponent(u)}`,
+  u => `https://api.codetabs.com/v1/proxy/?quest=${encodeURIComponent(u)}`,
   u => `https://api.allorigins.win/raw?url=${encodeURIComponent(u)}`,
-  u => `https://api.codetabs.com/v1/proxy?quest=${encodeURIComponent(u)}`,
-  u => `https://thingproxy.freeboard.io/fetch/${u}`,
+  u => `https://cors.x2u.in/${u}`,
 ];
 
 const SHIFT_INFO = {
@@ -696,10 +697,17 @@ function nowMinutes() {
 }
 
 async function raceFetch(url) {
+  const bustUrl = url + '&t=' + Date.now();
+  // Try direct first (Google published CSVs support CORS)
+  try {
+    const r = await fetch(bustUrl, { cache: 'no-store' });
+    if (r.ok) { const t = await r.text(); if (t && t.length > 20) return t; }
+  } catch(e) {}
   return new Promise((resolve, reject) => {
     let done = false, fails = 0;
+    if(!PROXIES.length){reject(new Error('no proxies'));return;}
     PROXIES.forEach(fn => {
-      fetch(fn(url + '&t=' + Date.now()), { cache: 'no-store' })
+      fetch(fn(bustUrl), { cache: 'no-store' })
         .then(r => { if (!r.ok) throw new Error(); return r.text(); })
         .then(t => { if (!done && t.length > 20) { done = true; resolve(t); } })
         .catch(() => { if (++fails === PROXIES.length && !done) reject(new Error('All proxies failed')); });

@@ -736,9 +736,10 @@ const MANAGER_PIN     = '1234'; // change this
 const SESSION_KEY     = 'cb_session';
 
 const PROXIES = [
+  u => `https://corsproxy.io/?url=${encodeURIComponent(u)}`,
+  u => `https://api.codetabs.com/v1/proxy/?quest=${encodeURIComponent(u)}`,
   u => `https://api.allorigins.win/raw?url=${encodeURIComponent(u)}`,
-  u => `https://api.codetabs.com/v1/proxy?quest=${encodeURIComponent(u)}`,
-  u => `https://thingproxy.freeboard.io/fetch/${u}`,
+  u => `https://cors.x2u.in/${u}`,
 ];
 
 
@@ -795,8 +796,14 @@ function parseCSV(text) {
 
 // ─── RACE FETCH ───
 async function raceFetch(url) {
+  // Try direct first (Google published CSVs support CORS)
+  try {
+    const r = await fetch(url, { cache:'no-store' });
+    if (r.ok) { const t = await r.text(); if (t && t.length>20) return t; }
+  } catch(e) {}
   return new Promise((resolve, reject) => {
     let done=false, fails=0;
+    if(!PROXIES.length){reject(new Error('no proxies'));return;}
     PROXIES.forEach(fn => {
       fetch(fn(url), { cache:'no-store' })
         .then(r=>{ if(!r.ok) throw new Error(); return r.text(); })

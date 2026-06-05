@@ -1024,10 +1024,10 @@ function localDateStr(d) {
 }
 const CACHE_TTL  = 90 * 1000;
 const PROXIES    = [
+  u => `https://corsproxy.io/?url=${encodeURIComponent(u)}`,
+  u => `https://api.codetabs.com/v1/proxy/?quest=${encodeURIComponent(u)}`,
   u => `https://api.allorigins.win/raw?url=${encodeURIComponent(u)}`,
-  u => `https://api.codetabs.com/v1/proxy?quest=${encodeURIComponent(u)}`,
-  u => `https://thingproxy.freeboard.io/fetch/${u}`,
-  u => `https://thingproxy.freeboard.io/fetch/${u}`,
+  u => `https://cors.x2u.in/${u}`,
 ];
 
 // ─── CONFIG ───
@@ -1095,14 +1095,27 @@ function splitCSVLine(line) {
 }
 
 // ─── RACE FETCH ───
+// Google published CSVs support CORS directly — try direct first, proxies as fallback
 async function raceFetch(url) {
+  // 1. Try direct fetch (works for published Google Sheets CSVs)
+  try {
+    const r = await fetch(url, { cache: 'no-store' });
+    if (r.ok) {
+      const t = await r.text();
+      if (t && t.length > 20) return t;
+    }
+  } catch(e) { /* fall through to proxies */ }
+
+  // 2. Fallback: race the proxies
   return new Promise((resolve, reject) => {
     let done=false, fails=0;
-    PROXIES.forEach(fn => {
+    const proxies = PROXIES;
+    if (!proxies.length) { reject(new Error('No proxies')); return; }
+    proxies.forEach(fn => {
       fetch(fn(url), { cache:'no-store' })
         .then(r => { if (!r.ok) throw new Error(); return r.text(); })
         .then(t  => { if (!done && t.length>20) { done=true; resolve(t); } })
-        .catch(() => { if (++fails===PROXIES.length && !done) reject(new Error('All proxies failed')); });
+        .catch(() => { if (++fails===proxies.length && !done) reject(new Error('All proxies failed')); });
     });
   });
 }

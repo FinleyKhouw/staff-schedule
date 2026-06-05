@@ -164,9 +164,10 @@ const SHEET_CSV_URL  = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vS6FdWT2
 const PINS_CSV_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vTHMywLmuecSKymO36lIgtj0B0VPzrtvQ0VdUWFIiQs1ZGoFncTqcqRkkyjHibw-MrlWi_tR_TLiWX_/pub?output=csv';
 
 const PROXIES = [
+  u => `https://corsproxy.io/?url=${encodeURIComponent(u)}`,
+  u => `https://api.codetabs.com/v1/proxy/?quest=${encodeURIComponent(u)}`,
   u => `https://api.allorigins.win/raw?url=${encodeURIComponent(u)}`,
-  u => `https://api.codetabs.com/v1/proxy?quest=${encodeURIComponent(u)}`,
-  u => `https://corsproxy.io/?${encodeURIComponent(u)}`,
+  u => `https://cors.x2u.in/${u}`,
 ];
 
 let staffList = [];
@@ -197,8 +198,13 @@ if (existingSession) {
 
 // ─── FETCH STAFF ───
 async function raceFetch(url) {
+  try {
+    const r = await fetch(url, { cache:'no-store' });
+    if (r.ok) { const t = await r.text(); if (t && t.length>20) return t; }
+  } catch(e) {}
   return new Promise((resolve, reject) => {
     let done=false, fails=0;
+    if(!PROXIES.length){reject(new Error('no proxies'));return;}
     PROXIES.forEach(fn => {
       fetch(fn(url), { cache:'no-store' })
         .then(r=>{ if(!r.ok) throw new Error(); return r.text(); })

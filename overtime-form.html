@@ -154,12 +154,12 @@
 </main>
 
 <script>
-const APPS_URL  = 'https://script.google.com/macros/s/AKfycbx9nEXT6OjckqZnMuSj5FM1kJb7Uw3xswxBRQX89hdMMHCoj986BzS87bTqDw1xFOCbPw/exec';
+const APPS_URL  = 'https://script.google.com/macros/s/AKfycbw9XojZYbGbj6mj2mXMKmhv0cten5k5CE-A5xDAJV6WFGsZq-a-4CMybNmflj6Z-cz2mA/exec';
 const SHEET_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vS6FdWT2Oj6_sXZTM7c4K5mnn-j_fxommGtfVx8gcoi8C3zb2nzPNktqiYTWQhqByGyV8TZSYWhgctb/pub?output=csv';
 const PROXIES   = [
+  u=>`https://corsproxy.io/?url=${encodeURIComponent(u)}`,
+  u=>`https://api.codetabs.com/v1/proxy/?quest=${encodeURIComponent(u)}`,
   u=>`https://api.allorigins.win/raw?url=${encodeURIComponent(u)}`,
-  u=>`https://api.codetabs.com/v1/proxy?quest=${encodeURIComponent(u)}`,
-  u=>`https://corsproxy.io/?${encodeURIComponent(u)}`,
 ];
 const SINFO = {
   am:  {label:'Shift 1 (AM)', foh:'08:00–14:00',prod:'05:00–11:00',cls:'am'},
@@ -180,7 +180,7 @@ document.addEventListener('click',()=>document.getElementById('pdrop').classList
 function splitL(t){const c=[];let cur='',q=false;for(const ch of t){if(ch==='"')q=!q;else if(ch===','&&!q){c.push(cur.trim());cur='';}else cur+=ch;}c.push(cur.trim());return c.map(x=>x.replace(/^"|"$/g,''));}
 function pDate(s){if(!s)return null;s=s.trim();if(/^\d{4}-\d{2}-\d{2}$/.test(s))return new Date(s+'T00:00:00');const m=s.match(/^(\d{1,2})\s+([A-Za-z]+)\s+(\d{4})$/);if(m){const mo=MMAP[m[2].toLowerCase().slice(0,3)];if(mo!==undefined)return new Date(parseInt(m[3]),mo,parseInt(m[1]));}return null;}
 
-async function raceFetch(url){return new Promise((res,rej)=>{let done=false,fails=0;PROXIES.forEach(fn=>{fetch(fn(url),{cache:'no-store'}).then(r=>{if(!r.ok)throw new Error();return r.text();}).then(t=>{if(!done&&t.length>20){done=true;res(t);}}).catch(()=>{if(++fails===PROXIES.length&&!done)rej(new Error());});});});}
+async function raceFetch(url){try{const r=await fetch(url,{cache:'no-store'});if(r.ok){const t=await r.text();if(t&&t.length>20)return t;}}catch(e){}return new Promise((res,rej)=>{let done=false,fails=0;if(!PROXIES.length){rej(new Error());return;}PROXIES.forEach(fn=>{fetch(fn(url),{cache:'no-store'}).then(r=>{if(!r.ok)throw new Error();return r.text();}).then(t=>{if(!done&&t.length>20){done=true;res(t);}}).catch(()=>{if(++fails===PROXIES.length&&!done)rej(new Error());});});});}
 
 async function loadSchedule(){
   try{
