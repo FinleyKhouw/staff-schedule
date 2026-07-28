@@ -122,20 +122,17 @@
   </div>
   <div class="hint">Prices auto-fill from your Wholesale list. Tap any price to override for a special deal.</div>
 
-  <!-- MANAGE PRICES -->
+  <!-- PRICE LIST (read-only; edit in the sheet) -->
   <div class="card" style="margin-top:1.5rem;">
     <div style="display:flex;align-items:center;justify-content:space-between;cursor:pointer;" onclick="toggleManage()">
-      <div class="card-title" style="margin:0;">⚙️ Manage wholesale prices</div>
+      <div class="card-title" style="margin:0;">📋 Wholesale price list</div>
       <span id="manage-caret" style="font-size:18px;color:var(--ink-muted);">▸</span>
     </div>
     <div id="manage-panel" style="display:none;margin-top:1rem;">
       <div id="manage-list"></div>
-      <div class="irow" style="grid-template-columns:1fr 120px 40px;margin-top:12px;">
-        <input id="new-item" type="text" placeholder="New item name">
-        <input id="new-price" class="num" type="number" min="0" placeholder="Price">
-        <button class="add-row" style="margin:0;padding:10px 0;" onclick="addWholesale()">+</button>
+      <div class="hint" style="text-align:left;margin-top:12px;">
+        To add or change prices, edit the <a href="https://docs.google.com/spreadsheets/d/e/2PACX-1vSMIjKSABcCHjtfZuZatGewGQLygRB_falrHYKcxevDsrgo4Hl8KF3EwFkvbVzr8GROO-ayl0o7HAum/pub?output=csv" target="_blank" style="color:var(--burgundy);font-weight:600;">Wholesale sheet</a>. This list refreshes automatically. <button class="add-row" style="display:inline-block;width:auto;padding:6px 14px;margin-top:8px;" onclick="refreshWholesale()">↻ Refresh now</button>
       </div>
-      <div class="hint" style="text-align:left;margin-top:12px;">Changes save straight to your spreadsheet. The dropdown above updates after saving.</div>
     </div>
   </div>
 </main>
@@ -144,7 +141,7 @@
 
 <script>
 // ═══════════════ CONFIG ═══════════════
-const APPS_URL = 'https://script.google.com/macros/s/AKfycbz_-YCtmGwDU1i29rlGbWM6XeUJnUOZNeLfV0QFFqwygLzAYVdai6_2fkOgK6ec5gLS/exec'; // order Apps Script (has wholesale endpoints)
+const WHOLESALE_CSV = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vSMIjKSABcCHjtfZuZatGewGQLygRB_falrHYKcxevDsrgo4Hl8KF3EwFkvbVzr8GROO-ayl0o7HAum/pub?output=csv';
 const BIZ = {
   name:'COREBAKE',
   accountName:'Stella Febianty',
@@ -153,23 +150,39 @@ const BIZ = {
   terms:'Please complete your payment within 1x24 hours. Order will automatically be cancelled if there is no confirmation within the specified time limit after placing your order. All deliveries are by instant CAR ONLY to prevent any damages. Thank you',
 };
 
-// Fallback list (used only if Apps Script unreachable)
+// Fallback list (used only if CSV unreachable)
 const DEMO_WHOLESALE = [
   {item:'Original',price:16150},
 ];
 
 let WHOLESALE = [];
 
-// ═══════════════ LOAD ═══════════════
+// ═══════════════ LOAD (from published CSV) ═══════════════
 async function loadWholesale(){
   try{
-    if(!APPS_URL||APPS_URL.startsWith('PASTE')){WHOLESALE=DEMO_WHOLESALE;return;}
-    const res=await fetch(APPS_URL+'?action=getWholesale&t='+Date.now(),{cache:'no-store'});
-    const data=await res.json();
-    WHOLESALE=(data.wholesale||[]).filter(w=>w.item);
+    if(!WHOLESALE_CSV||WHOLESALE_CSV.startsWith('PASTE')){WHOLESALE=DEMO_WHOLESALE;return;}
+    const res=await fetch(WHOLESALE_CSV+'&t='+Date.now(),{cache:'no-store'});
+    const text=await res.text();
+    WHOLESALE=parseWholesale(text);
     if(!WHOLESALE.length)WHOLESALE=DEMO_WHOLESALE;
   }catch(e){WHOLESALE=DEMO_WHOLESALE;}
 }
+function parseWholesale(text){
+  const lines=text.split(/\r?\n/).filter(l=>l.trim());
+  if(!lines.length)return [];
+  const head=splitCSV(lines[0]).map(h=>h.toLowerCase().trim());
+  const ii=head.findIndex(h=>h.includes('item')||h.includes('product')||h.includes('name'));
+  const pi=head.findIndex(h=>h.includes('price')||h.includes('harga'));
+  const out=[];
+  for(let i=1;i<lines.length;i++){
+    const c=splitCSV(lines[i]);
+    const item=(c[ii>=0?ii:0]||'').trim();
+    if(!item)continue;
+    out.push({item,price:parseInt((c[pi>=0?pi:1]||'0').replace(/[^\d]/g,''))||0});
+  }
+  return out;
+}
+function splitCSV(line){const o=[];let cur='',q=false;for(let i=0;i<line.length;i++){const ch=line[i];if(ch==='"')q=!q;else if(ch===','&&!q){o.push(cur);cur='';}else cur+=ch;}o.push(cur);return o.map(x=>x.replace(/^"|"$/g,'').trim());}
 
 // ═══════════════ INVOICE NUMBER (date-based) ═══════════════
 function todayISO(){const d=new Date();return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');}
@@ -339,7 +352,7 @@ function generatePDF(){
   refreshInvoiceNo();
 }
 
-// ═══════════════ MANAGE WHOLESALE ═══════════════
+// ═══════════════ PRICE LIST (read-only) ═══════════════
 function toggleManage(){
   const p=document.getElementById('manage-panel');
   const c=document.getElementById('manage-caret');
@@ -351,55 +364,23 @@ function toggleManage(){
 
 function renderManageList(){
   const el=document.getElementById('manage-list');
-  if(!WHOLESALE.length){el.innerHTML='<div class="hint" style="text-align:left;">No items yet. Add one below.</div>';return;}
+  if(!WHOLESALE.length){el.innerHTML='<div class="hint" style="text-align:left;">No items found in the sheet.</div>';return;}
   el.innerHTML=WHOLESALE.map(w=>`
-    <div class="irow" style="grid-template-columns:1fr 120px 40px;">
-      <div style="font-size:13.5px;font-weight:500;padding:10px 0;">${esc(w.item)}</div>
-      <input class="num" type="number" min="0" value="${w.price}" data-item="${esc(w.item)}" onblur="saveWholesalePrice(this)">
-      <button class="del" onclick="deleteWholesale('${esc(w.item).replace(/'/g,"\\'")}')">×</button>
+    <div class="irow" style="grid-template-columns:1fr 120px;">
+      <div style="font-size:13.5px;font-weight:500;padding:8px 0;">${esc(w.item)}</div>
+      <div class="linetotal" style="padding:8px 2px 8px 0;">${money(w.price)}</div>
     </div>`).join('');
-}
-
-async function post(payload){
-  try{
-    await fetch(APPS_URL,{method:'POST',mode:'no-cors',headers:{'Content-Type':'text/plain'},body:JSON.stringify(payload)});
-  }catch(e){}
-}
-
-async function saveWholesalePrice(input){
-  const item=input.getAttribute('data-item');
-  const price=parseInt(input.value)||0;
-  await post({formType:'wholesaleSave',item,price});
-  toast('Saved '+item);
-  setTimeout(refreshWholesale,1200);
-}
-
-async function addWholesale(){
-  const item=(document.getElementById('new-item').value||'').trim();
-  const price=parseInt(document.getElementById('new-price').value)||0;
-  if(!item){toast('Enter item name');return;}
-  await post({formType:'wholesaleSave',item,price});
-  document.getElementById('new-item').value='';
-  document.getElementById('new-price').value='';
-  toast('Added '+item);
-  setTimeout(refreshWholesale,1200);
-}
-
-async function deleteWholesale(item){
-  if(!confirm('Remove "'+item+'" from wholesale list?'))return;
-  await post({formType:'wholesaleDelete',item});
-  toast('Removed '+item);
-  setTimeout(refreshWholesale,1200);
 }
 
 async function refreshWholesale(){
   await loadWholesale();
   renderManageList();
-  // refresh all dropdowns in item rows, keeping selections
+  // refresh dropdowns in item rows, keeping selections
   document.querySelectorAll('.irow select').forEach(sel=>{
     const cur=sel.value;
     sel.innerHTML=optionList(cur);
   });
+  toast('Prices refreshed');
 }
 
 // ═══════════════ UTIL ═══════════════
