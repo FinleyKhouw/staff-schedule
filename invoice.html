@@ -1,0 +1,421 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>B2B Invoice — Corebake</title>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant:wght@500;600;700&family=Inclusive+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<style>
+  :root{
+    --maroon:#4C1424; --maroon-2:#3A0E1B; --burgundy:#9C2444;
+    --gold:#E8B964; --gold-dark:#8A6516; --peach:#FBE0CB;
+    --bg:#F4EEE6; --surface:#FCF8F2; --surface-2:#F7F0E6;
+    --ink:#2A0E16; --ink-muted:#7A5C66; --ink-faint:#B398A2;
+    --border:rgba(76,20,36,0.13); --border-soft:rgba(76,20,36,0.07);
+    --shadow:0 1px 2px rgba(76,20,36,0.05), 0 6px 22px rgba(76,20,36,0.06);
+    --serif:'Cormorant', Georgia, serif;
+    --sans:'Inclusive Sans', system-ui, -apple-system, sans-serif;
+  }
+  *{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
+  body{font-family:var(--sans);background:var(--bg);color:var(--ink);min-height:100vh;-webkit-font-smoothing:antialiased;}
+  a{color:inherit;}
+
+  header{background:linear-gradient(180deg,var(--maroon),var(--maroon-2));color:var(--gold);padding:14px 18px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:30;}
+  .h-title{font-family:var(--serif);font-size:1.3rem;font-weight:600;letter-spacing:.04em;}
+  .h-sub{font-size:10px;letter-spacing:.12em;color:rgba(232,185,100,.55);text-transform:uppercase;}
+  .back{background:rgba(232,185,100,.14);border:1px solid rgba(232,185,100,.3);color:var(--gold);border-radius:9px;padding:8px 13px;font-size:12px;font-weight:600;cursor:pointer;font-family:var(--sans);text-decoration:none;display:inline-flex;align-items:center;gap:6px;}
+
+  main{max-width:760px;margin:0 auto;padding:1.5rem 1.25rem 4rem;}
+
+  .card{background:var(--surface);border:1px solid var(--border);border-radius:16px;padding:1.25rem;margin-bottom:1.25rem;box-shadow:var(--shadow);}
+  .card-title{font-family:var(--serif);font-size:1.3rem;font-weight:600;color:var(--maroon);margin-bottom:1rem;}
+
+  .grid2{display:grid;grid-template-columns:1fr 1fr;gap:14px;}
+  .field{margin-bottom:14px;}
+  .field label{display:block;font-size:11.5px;font-weight:600;color:var(--ink-muted);margin-bottom:6px;letter-spacing:.02em;}
+  .field input{width:100%;background:var(--bg);border:1.5px solid var(--border);border-radius:11px;padding:11px 13px;font-family:var(--sans);font-size:14px;color:var(--ink);}
+  .field input:focus{outline:none;border-color:var(--gold);}
+
+  /* items table */
+  .items-head{display:grid;grid-template-columns:1fr 70px 110px 110px 34px;gap:8px;padding:0 4px 8px;font-size:10.5px;font-weight:700;letter-spacing:.04em;text-transform:uppercase;color:var(--ink-muted);}
+  .items-head span:nth-child(2),.items-head span:nth-child(3),.items-head span:nth-child(4){text-align:right;}
+  .irow{display:grid;grid-template-columns:1fr 70px 110px 110px 34px;gap:8px;margin-bottom:8px;align-items:center;}
+  .irow select,.irow input{background:var(--bg);border:1.5px solid var(--border);border-radius:10px;padding:10px;font-family:var(--sans);font-size:13px;color:var(--ink);width:100%;}
+  .irow select:focus,.irow input:focus{outline:none;border-color:var(--gold);}
+  .irow input.num{text-align:right;font-variant-numeric:tabular-nums;}
+  .irow .linetotal{font-family:var(--serif);font-size:1.05rem;font-weight:600;color:var(--maroon);text-align:right;padding-right:2px;}
+  .del{background:none;border:none;color:var(--ink-faint);font-size:18px;cursor:pointer;padding:4px;border-radius:7px;}
+  .del:hover{color:var(--burgundy);background:var(--bg);}
+
+  .add-row{background:none;border:1.5px dashed var(--border);color:var(--maroon);border-radius:11px;padding:11px;width:100%;font-family:var(--sans);font-size:13px;font-weight:600;cursor:pointer;margin-top:4px;transition:all .12s;}
+  .add-row:hover{background:var(--bg);border-color:var(--gold);}
+
+  .grand{display:flex;justify-content:space-between;align-items:center;margin-top:1rem;padding-top:1rem;border-top:1.5px dashed var(--border);}
+  .grand-label{font-size:12px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--ink-muted);}
+  .grand-amt{font-family:var(--serif);font-size:2rem;font-weight:700;color:var(--maroon);}
+
+  .actions{display:flex;gap:12px;}
+  .btn{flex:1;border:none;border-radius:13px;padding:15px;font-family:var(--sans);font-size:15px;font-weight:700;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:9px;transition:all .15s;}
+  .btn:active{transform:scale(.98);}
+  .btn-pdf{background:var(--maroon);color:var(--gold);}
+  .btn-pdf:disabled{background:var(--ink-faint);cursor:not-allowed;}
+  .btn-preview{background:var(--surface);color:var(--maroon);border:1.5px solid var(--border);}
+
+  .hint{font-size:11.5px;color:var(--ink-faint);margin-top:10px;line-height:1.5;text-align:center;}
+  .toast{position:fixed;left:50%;bottom:30px;transform:translateX(-50%) translateY(20px);background:var(--ink);color:var(--surface);font-size:12.5px;font-weight:500;padding:10px 18px;border-radius:22px;z-index:200;opacity:0;transition:.25s;pointer-events:none;}
+  .toast.show{opacity:1;transform:translateX(-50%) translateY(0);}
+
+  @media(max-width:560px){
+    .grid2{grid-template-columns:1fr;}
+    .items-head{grid-template-columns:1fr 52px 88px 88px 30px;font-size:9px;gap:5px;}
+    .irow{grid-template-columns:1fr 52px 88px 88px 30px;gap:5px;}
+    .irow select,.irow input{padding:9px 7px;font-size:12px;}
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div>
+    <div class="h-title">B2B Invoice</div>
+    <div class="h-sub">Corebake Wholesale</div>
+  </div>
+  <a href="dashboard.html" class="back">‹ Dashboard</a>
+</header>
+
+<main>
+  <div class="card">
+    <div class="card-title">Invoice details</div>
+    <div class="grid2">
+      <div class="field">
+        <label for="inv-no">Invoice number</label>
+        <input id="inv-no" type="text">
+      </div>
+      <div class="field">
+        <label for="inv-date">Date</label>
+        <input id="inv-date" type="date">
+      </div>
+    </div>
+    <div class="field">
+      <label for="inv-to">Invoice to (client)</label>
+      <input id="inv-to" type="text" placeholder="e.g. EBAD">
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-title">Items</div>
+    <div class="items-head">
+      <span>Product</span><span>Qty</span><span>Price/pc</span><span>Price</span><span></span>
+    </div>
+    <div id="rows"></div>
+    <button class="add-row" onclick="addRow()">+ Add item</button>
+
+    <div class="grand">
+      <span class="grand-label">Grand Total</span>
+      <span class="grand-amt" id="grand">IDR 0</span>
+    </div>
+  </div>
+
+  <div class="actions">
+    <button class="btn btn-pdf" id="pdf-btn" onclick="generatePDF()">🧾 Download Invoice PDF</button>
+  </div>
+  <div class="hint">Prices auto-fill from your Wholesale list. Tap any price to override for a special deal.</div>
+
+  <!-- MANAGE PRICES -->
+  <div class="card" style="margin-top:1.5rem;">
+    <div style="display:flex;align-items:center;justify-content:space-between;cursor:pointer;" onclick="toggleManage()">
+      <div class="card-title" style="margin:0;">⚙️ Manage wholesale prices</div>
+      <span id="manage-caret" style="font-size:18px;color:var(--ink-muted);">▸</span>
+    </div>
+    <div id="manage-panel" style="display:none;margin-top:1rem;">
+      <div id="manage-list"></div>
+      <div class="irow" style="grid-template-columns:1fr 120px 40px;margin-top:12px;">
+        <input id="new-item" type="text" placeholder="New item name">
+        <input id="new-price" class="num" type="number" min="0" placeholder="Price">
+        <button class="add-row" style="margin:0;padding:10px 0;" onclick="addWholesale()">+</button>
+      </div>
+      <div class="hint" style="text-align:left;margin-top:12px;">Changes save straight to your spreadsheet. The dropdown above updates after saving.</div>
+    </div>
+  </div>
+</main>
+
+<div class="toast" id="toast"></div>
+
+<script>
+// ═══════════════ CONFIG ═══════════════
+const APPS_URL = 'https://script.google.com/macros/s/AKfycbyCVmv3tNyTH1e35MqkdjyiBtQlLO2ysf1XPhYqsP52lRca1M-lrBoaB4YmIHdKePaD/exec'; // order Apps Script (has wholesale endpoints)
+const BIZ = {
+  name:'COREBAKE',
+  accountName:'Stella Febianty',
+  accountNo:'BCA -- 658 0768 324',
+  handle:'@corebake',
+  terms:'Please complete your payment within 1x24 hours. Order will automatically be cancelled if there is no confirmation within the specified time limit after placing your order. All deliveries are by instant CAR ONLY to prevent any damages. Thank you',
+};
+
+// Fallback list (used only if Apps Script unreachable)
+const DEMO_WHOLESALE = [
+  {item:'Original',price:16150},
+];
+
+let WHOLESALE = [];
+
+// ═══════════════ LOAD ═══════════════
+async function loadWholesale(){
+  try{
+    if(!APPS_URL||APPS_URL.startsWith('PASTE')){WHOLESALE=DEMO_WHOLESALE;return;}
+    const res=await fetch(APPS_URL+'?action=getWholesale&t='+Date.now(),{cache:'no-store'});
+    const data=await res.json();
+    WHOLESALE=(data.wholesale||[]).filter(w=>w.item);
+    if(!WHOLESALE.length)WHOLESALE=DEMO_WHOLESALE;
+  }catch(e){WHOLESALE=DEMO_WHOLESALE;}
+}
+
+// ═══════════════ INVOICE NUMBER (date-based) ═══════════════
+function todayISO(){const d=new Date();return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');}
+function makeInvoiceNo(dateStr){
+  const ymd=(dateStr||todayISO()).replace(/-/g,'');
+  // per-day counter stored locally
+  const key='cb_inv_'+ymd;
+  let n=parseInt(localStorage.getItem(key)||'0')+1;
+  return {no:'INV-'+ymd+'-'+n, key, n};
+}
+function refreshInvoiceNo(){
+  const d=document.getElementById('inv-date').value||todayISO();
+  const {no}=makeInvoiceNo(d);
+  document.getElementById('inv-no').value=no;
+}
+
+// ═══════════════ ROWS ═══════════════
+function optionList(selected){
+  return WHOLESALE.map(w=>`<option value="${esc(w.item)}"${w.item===selected?' selected':''}>${esc(w.item)}</option>`).join('');
+}
+function addRow(item){
+  const w=WHOLESALE.find(x=>x.item===item)||WHOLESALE[0]||{item:'',price:0};
+  const div=document.createElement('div');
+  div.className='irow';
+  div.innerHTML=`
+    <select onchange="onItemChange(this)">${optionList(w.item)}</select>
+    <input class="num qty" type="number" min="0" value="1" oninput="recalc()">
+    <input class="num price" type="number" min="0" value="${w.price}" oninput="recalc()">
+    <div class="linetotal">IDR 0</div>
+    <button class="del" onclick="this.parentElement.remove();recalc();">×</button>`;
+  document.getElementById('rows').appendChild(div);
+  recalc();
+}
+function onItemChange(sel){
+  const w=WHOLESALE.find(x=>x.item===sel.value);
+  if(w){ sel.closest('.irow').querySelector('.price').value=w.price; }
+  recalc();
+}
+function recalc(){
+  let total=0;
+  document.querySelectorAll('.irow').forEach(r=>{
+    const qty=parseInt(r.querySelector('.qty').value)||0;
+    const price=parseInt(r.querySelector('.price').value)||0;
+    const lt=qty*price;
+    total+=lt;
+    r.querySelector('.linetotal').textContent=money(lt);
+  });
+  document.getElementById('grand').textContent=money(total);
+}
+
+function collect(){
+  const items=[];
+  document.querySelectorAll('.irow').forEach(r=>{
+    const name=r.querySelector('select').value;
+    const qty=parseInt(r.querySelector('.qty').value)||0;
+    const price=parseInt(r.querySelector('.price').value)||0;
+    if(name&&qty>0)items.push({name,qty,price,total:qty*price});
+  });
+  return items;
+}
+
+// ═══════════════ PDF ═══════════════
+function generatePDF(){
+  const items=collect();
+  const to=(document.getElementById('inv-to').value||'').trim();
+  if(!to){toast('Enter the client name');document.getElementById('inv-to').focus();return;}
+  if(!items.length){toast('Add at least one item with qty');return;}
+
+  const invNo=document.getElementById('inv-no').value||'';
+  const dateStr=fmtDate(document.getElementById('inv-date').value||todayISO());
+  const grand=items.reduce((s,i)=>s+i.total,0);
+
+  const { jsPDF }=window.jspdf;
+  const doc=new jsPDF({unit:'mm',format:'a4'});
+  const M=18, W=210, right=W-M;
+
+  // ── Wordmark ──
+  doc.setFont('times','bold'); doc.setFontSize(30); doc.setTextColor(76,20,36);
+  doc.text('COREBAKE', W/2, 28, {align:'center', charSpace:1.6});
+
+  // ── Date / Invoice To ──
+  doc.setFont('helvetica','normal'); doc.setFontSize(10); doc.setTextColor(60,40,48);
+  doc.text('Date', M, 48);
+  doc.text(': '+dateStr, M+22, 48);
+  doc.text('No.', M, 55);
+  doc.text(': '+invNo, M+22, 55);
+  doc.setTextColor(120,92,102);
+  doc.text('INVOICE TO:', right, 48, {align:'right'});
+  doc.setFont('helvetica','bold'); doc.setTextColor(42,14,22); doc.setFontSize(12);
+  doc.text(to.toUpperCase(), right, 55, {align:'right'});
+
+  // ── Table ──
+  let y=68;
+  const cols=[M, M+70, M+108, M+150, right]; // 4 columns edges
+  const rowH=11, headH=16;
+  // header background
+  doc.setFillColor(247,240,230);
+  doc.rect(M, y, right-M, headH, 'F');
+  doc.setDrawColor(200,180,160); doc.setLineWidth(0.3);
+  doc.setFont('helvetica','bold'); doc.setFontSize(9); doc.setTextColor(76,20,36);
+  doc.text('PRODUCT', cols[0]+3, y+headH/2+1);
+  doc.text('QTY', (cols[1]+cols[2])/2, y+headH/2+1, {align:'center'});
+  doc.text('PRICE/PC', (cols[2]+cols[3])/2, y+headH/2+1, {align:'center'});
+  doc.text('PRICE', cols[4]-3, y+headH/2+1, {align:'right'});
+  y+=headH;
+
+  // rows
+  doc.setFont('helvetica','normal'); doc.setTextColor(42,14,22); doc.setFontSize(10);
+  items.forEach(it=>{
+    doc.text(String(it.name), cols[0]+3, y+rowH/2+1);
+    doc.text(String(it.qty), (cols[1]+cols[2])/2, y+rowH/2+1, {align:'center'});
+    doc.text(money(it.price), (cols[2]+cols[3])/2, y+rowH/2+1, {align:'center'});
+    doc.text(money(it.total), cols[4]-3, y+rowH/2+1, {align:'right'});
+    y+=rowH;
+  });
+
+  // table outer border + column separators
+  const tableTop=68, tableBottom=y;
+  doc.setDrawColor(150,120,100); doc.setLineWidth(0.4);
+  doc.rect(M, tableTop, right-M, tableBottom-tableTop);
+  doc.line(M, tableTop+headH, right, tableTop+headH); // under header
+  [cols[1],cols[2],cols[3]].forEach(x=>doc.line(x, tableTop, x, tableBottom));
+
+  // ── Grand total ──
+  y+=12;
+  doc.setFont('helvetica','normal'); doc.setFontSize(10); doc.setTextColor(120,92,102);
+  doc.text('GRAND TOTAL', cols[3]-30, y, {align:'right', charSpace:0.5});
+  doc.text(':', cols[3]-6, y);
+  doc.setFont('times','bold'); doc.setFontSize(15); doc.setTextColor(76,20,36);
+  doc.text(money(grand), right, y, {align:'right'});
+
+  // ── Thank you ──
+  y+=22;
+  doc.setFont('times','normal'); doc.setFontSize(30); doc.setTextColor(42,14,22);
+  doc.text('Thank you', M, y);
+  y+=8;
+  doc.setFont('times','italic'); doc.setFontSize(13); doc.setTextColor(120,92,102);
+  doc.text(BIZ.handle, M, y);
+
+  // ── Payment details ──
+  y+=20;
+  doc.setFont('helvetica','bolditalic'); doc.setFontSize(12); doc.setTextColor(138,101,22);
+  doc.text('Payment Details', M, y);
+  y+=9;
+  doc.setFont('helvetica','normal'); doc.setFontSize(12); doc.setTextColor(138,101,22);
+  doc.text('Account Name : '+BIZ.accountName, M, y); y+=8;
+  doc.text('Account No   : '+BIZ.accountNo, M, y);
+
+  // ── Terms ──
+  y+=16;
+  doc.setFont('helvetica','bold'); doc.setFontSize(9); doc.setTextColor(60,40,48);
+  doc.text('TERMS & CONDITIONS', M, y, {charSpace:0.5});
+  y+=6;
+  doc.setFont('helvetica','normal'); doc.setFontSize(9); doc.setTextColor(80,60,68);
+  const wrapped=doc.splitTextToSize(BIZ.terms, right-M);
+  doc.text(wrapped, M, y, {lineHeightFactor:1.5});
+
+  // save + bump counter
+  const d=document.getElementById('inv-date').value||todayISO();
+  const {key,n}=makeInvoiceNo(d);
+  // only bump if the shown number matches the auto one for that day
+  if(document.getElementById('inv-no').value.startsWith('INV-'+d.replace(/-/g,'')))
+    localStorage.setItem(key,String(n));
+
+  doc.save((invNo||'Corebake_Invoice')+'_'+to.replace(/[^a-zA-Z0-9]/g,'_')+'.pdf');
+  toast('Invoice PDF downloaded');
+  refreshInvoiceNo();
+}
+
+// ═══════════════ MANAGE WHOLESALE ═══════════════
+function toggleManage(){
+  const p=document.getElementById('manage-panel');
+  const c=document.getElementById('manage-caret');
+  const open=p.style.display==='none';
+  p.style.display=open?'block':'none';
+  c.textContent=open?'▾':'▸';
+  if(open)renderManageList();
+}
+
+function renderManageList(){
+  const el=document.getElementById('manage-list');
+  if(!WHOLESALE.length){el.innerHTML='<div class="hint" style="text-align:left;">No items yet. Add one below.</div>';return;}
+  el.innerHTML=WHOLESALE.map(w=>`
+    <div class="irow" style="grid-template-columns:1fr 120px 40px;">
+      <div style="font-size:13.5px;font-weight:500;padding:10px 0;">${esc(w.item)}</div>
+      <input class="num" type="number" min="0" value="${w.price}" data-item="${esc(w.item)}" onblur="saveWholesalePrice(this)">
+      <button class="del" onclick="deleteWholesale('${esc(w.item).replace(/'/g,"\\'")}')">×</button>
+    </div>`).join('');
+}
+
+async function post(payload){
+  try{
+    await fetch(APPS_URL,{method:'POST',mode:'no-cors',headers:{'Content-Type':'text/plain'},body:JSON.stringify(payload)});
+  }catch(e){}
+}
+
+async function saveWholesalePrice(input){
+  const item=input.getAttribute('data-item');
+  const price=parseInt(input.value)||0;
+  await post({formType:'wholesaleSave',item,price});
+  toast('Saved '+item);
+  setTimeout(refreshWholesale,1200);
+}
+
+async function addWholesale(){
+  const item=(document.getElementById('new-item').value||'').trim();
+  const price=parseInt(document.getElementById('new-price').value)||0;
+  if(!item){toast('Enter item name');return;}
+  await post({formType:'wholesaleSave',item,price});
+  document.getElementById('new-item').value='';
+  document.getElementById('new-price').value='';
+  toast('Added '+item);
+  setTimeout(refreshWholesale,1200);
+}
+
+async function deleteWholesale(item){
+  if(!confirm('Remove "'+item+'" from wholesale list?'))return;
+  await post({formType:'wholesaleDelete',item});
+  toast('Removed '+item);
+  setTimeout(refreshWholesale,1200);
+}
+
+async function refreshWholesale(){
+  await loadWholesale();
+  renderManageList();
+  // refresh all dropdowns in item rows, keeping selections
+  document.querySelectorAll('.irow select').forEach(sel=>{
+    const cur=sel.value;
+    sel.innerHTML=optionList(cur);
+  });
+}
+
+// ═══════════════ UTIL ═══════════════
+function money(n){return 'IDR '+(Number(n)||0).toLocaleString('id-ID');}
+function esc(s){return String(s==null?'':s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));}
+function fmtDate(iso){const M=['Januari','Februari','Maret','April','Mei','Juni','Juli','Agustus','September','Oktober','November','Desember'];const [y,m,d]=iso.split('-').map(Number);return d+' '+M[m-1]+' '+y;}
+let toastT;function toast(m){const t=document.getElementById('toast');t.textContent=m;t.classList.add('show');clearTimeout(toastT);toastT=setTimeout(()=>t.classList.remove('show'),2000);}
+
+// ═══════════════ INIT ═══════════════
+(async function(){
+  await loadWholesale();
+  document.getElementById('inv-date').value=todayISO();
+  document.getElementById('inv-date').addEventListener('change',refreshInvoiceNo);
+  refreshInvoiceNo();
+  addRow('Original');
+})();
+</script>
+</body>
+</html>
